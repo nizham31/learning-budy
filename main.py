@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from api.router import router as api_router
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware # <-- 1. Impor CORS
 
 app = FastAPI(
@@ -21,6 +22,12 @@ app.add_middleware(
 # Beri prefix /api/v1 untuk semua endpoint tersebut
 app.include_router(api_router, prefix="/api/v1")
 
+
+app.mount(
+    "/widget",  # Ini akan menjadi path URL-nya
+    StaticFiles(directory="template"),  # Lokasi file statis di server
+    name="widget-static"
+)
 @app.get("/")
 async def read_root():
     return {

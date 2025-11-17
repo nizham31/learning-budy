@@ -14,17 +14,17 @@ router = APIRouter(prefix="/recommend", tags=["Rekomendasi"])
 # Kamus untuk "menerjemahkan" nama dari API Dicoding
 # ke nama kategori di API Mock Anda (sesuai screenshot)
 CATEGORY_MAP = {
-    "AI Engineer": "AI",
+    "AI Engineer": "Machine Learning",
     "Android Developer": "Android",
     "Back-End Developer JavaScript": "Web",
     "Back-End Developer Python": "Back-End",
     "Data Scientist": "Data", 
     "DevOps Engineer": "Cloud Computing", 
     "Front-End Web Developer": "Web",
-    "Gen AI Engineer": "AI",
+    "Gen AI Engineer": "Machine Learning",
     "Google Cloud Professional": "Cloud Computing",
-    "iOS Developer": "Mobile", 
-    "MLOps Engineer": "AI",
+    "iOS Developer": "iOS", 
+    "MLOps Engineer": "Machine Learning",
     "Multi-Platform App Developer": "Mobile",
     "React Developer": "Web" 
 }

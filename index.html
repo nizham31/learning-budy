@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Learning Buddy</title>
+    <!-- 1. Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Mengatur agar chat container mengisi layar dan bisa di-scroll */
+        #chat-container {
+            scroll-behavior: smooth;
+        }
+        /* Menyembunyikan scrollbar standar */
+        #chat-container::-webkit-scrollbar {
+            width: 0px;
+        }
+        /* Tampilan loading spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex flex-col h-screen max-w-2xl mx-auto bg-white shadow-xl">
+        
+        <!-- Header -->
+        <div class="flex-shrink-0 bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
+            <h1 class="text-xl font-bold">Learning Buddy</h1>
+            <button onclick="showMainMenu()" class="text-xs bg-white text-blue-600 font-semibold px-2 py-1 rounded hover:bg-gray-200">
+                Mulai Ulang
+            </button>
+        </div>
+
+        <!-- 1. Jendela Chat (Tempat Bubble Muncul) -->
+        <div id="chat-container" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <!-- Bubbles akan ditambahkan oleh JavaScript di sini -->
+        </div>
+
+        <!-- 2. Kontainer Aksi (Tempat Tombol/Input Muncul) -->
+        <div id="action-container" class="flex-shrink-0 p-4 bg-gray-50 border-t border-gray-200">
+            <!-- Konten aksi (tombol, form) akan ditambahkan oleh JavaScript di sini -->
+        </div>
+
+    </div>
+
+    <!-- 3. JavaScript untuk Logika Aplikasi -->
+    <script>
+        const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
+
+        // Ambil elemen utama
+        const chatContainer = document.getElementById('chat-container');
+        const actionContainer = document.getElementById('action-container');
+
+        // --- Fungsi Inti UI ---
+
+        /** Menambahkan bubble chat ke jendela */
+        function addBubble(htmlContent, sender = 'bot', isLoading = false) {
+            const bubble = document.createElement('div');
+            bubble.className = `w-full flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            const content = document.createElement('div');
+            content.className = `p-3 rounded-lg max-w-xs md:max-w-md ${sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`;
+            content.innerHTML = htmlContent;
+
+            if (isLoading) {
+                bubble.id = 'loading-bubble';
+                content.classList.add('flex', 'items-center', 'space-x-2');
+                content.innerHTML = `<div class="loader"></div><span>${htmlContent}</span>`;
+            }
+            
+            bubble.appendChild(content);
+            chatContainer.appendChild(bubble);
+            
+            // Auto-scroll ke bubble terbaru
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        /** Menghapus bubble loading */
+        function removeLoadingBubble() {
+            const loadingBubble = document.getElementById('loading-bubble');
+            if (loadingBubble) {
+                loadingBubble.remove();
+            }
+        }
+
+        /** Menghapus semua tombol/form di kontainer aksi */
+        function clearActions() {
+            actionContainer.innerHTML = '';
+        }
+
+        // --- Fungsi Alur (State Machine Sederhana) ---
+
+        /** Menampilkan Menu Utama (State Awal) */
+        function showMainMenu() {
+            clearActions();
+            addBubble("Halo! Ada yang bisa saya bantu? Silakan pilih salah satu opsi di bawah ini.", 'bot');
+
+            // Render tombol-tombol menu
+            const menu = document.createElement('div');
+            menu.className = 'space-y-2';
+            menu.innerHTML = `
+                <button onclick="startRecommendationFlow()" class="w-full text-left bg-white border border-gray-300 p-3 rounded-lg hover:bg-gray-50">
+                    <strong>Rekomendasi Alur Belajar</strong>
+                    <p class="text-sm text-gray-600">Dapatkan rekomendasi kursus berdasarkan kuis.</p>
+                </button>
+                <button onclick="startAskFlow()" class="w-full text-left bg-white border border-gray-300 p-3 rounded-lg hover:bg-gray-50">
+                    <strong>Tanya Teknis (RAG)</strong>
+                    <p class="text-sm text-gray-600">Ajukan pertanyaan tentang materi.</p>
+                </button>
+                <button onclick="startProgressFlow()" class="w-full text-left bg-white border border-gray-300 p-3 rounded-lg hover:bg-gray-50">
+                    <strong>Cek Progres Belajar</strong>
+                    <p class="text-sm text-gray-600">Lihat progres Anda (data dari mock server).</p>
+                </button>
+            `;
+            actionContainer.appendChild(menu);
+        }
+
+        // --- ALUR 1: REKOMENDASI ---
+
+        /** (Step 1.1) Pengguna mengklik "Rekomendasi" */
+        async function startRecommendationFlow() {
+            addBubble("Tentu, mari kita cari alur belajar yang pas!", 'user');
+            clearActions();
+            addBubble("Memuat daftar minat...", 'bot', true);
+
+            try {
+                const interests = await apiFetch('/recommend/interests');
+                removeLoadingBubble();
+                addBubble("Silakan pilih salah satu minat yang paling Anda sukai:", 'bot');
+                
+                // Render dropdown di kontainer aksi
+                const interestForm = document.createElement('form');
+                interestForm.className = 'flex space-x-2';
+                interestForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    startQuiz(e.target.interest.value);
+                };
+                
+                let options = '<option value="">-- Pilih Minat --</option>';
+                interests.forEach(i => {
+                    options += `<option value="${i.name}">${i.name}</option>`;
+                });
+                
+                interestForm.innerHTML = `
+                    <select name="interest" class="w-full p-2 border rounded-md">
+                        ${options}
+                    </select>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        Mulai Kuis
+                    </button>
+                `;
+                actionContainer.appendChild(interestForm);
+
+            } catch (error) {
+                removeLoadingBubble();
+                addBubble(`Maaf, gagal memuat minat: ${error.message}`, 'bot');
+                showMainMenu(); // Kembali ke menu utama jika gagal
+            }
+        }
+
+        /** (Step 1.2) Pengguna memulai kuis */
+        async function startQuiz(interestName) {
+            if (!interestName) {
+                alert('Silakan pilih minat terlebih dahulu.');
+                return;
+            }
+            addBubble(`Saya tertarik dengan ${interestName}.`, 'user');
+            clearActions();
+            addBubble(`Oke, bagus! Ini ada kuis singkat (level beginner) tentang ${interestName} untuk Anda...`, 'bot');
+            addBubble("Memuat kuis...", 'bot', true);
+
+            try {
+                const quizQuestions = await apiFetch(`/recommend/quiz?kategori_minat=${encodeURIComponent(interestName)}&level=beginner`);
+                removeLoadingBubble();
+                
+                // Render form kuis di kontainer aksi
+                const quizForm = document.createElement('form');
+                quizForm.id = 'quiz-form';
+                quizForm.className = 'space-y-4 max-h-64 overflow-y-auto p-1'; // Buat form kuis bisa di-scroll
+                
+                quizQuestions.forEach((q, index) => {
+                    const questionElement = document.createElement('div');
+                    questionElement.className = 'p-2 border rounded-md bg-white';
+                    
+                    let optionsHTML = '';
+                    [q.option_1, q.option_2, q.option_3, q.option_4].forEach(opt => {
+                        optionsHTML += `
+                            <label class="flex items-center text-sm">
+                                <input type="radio" name="q_${q.question_id}" value="${opt}" class="mr-2">
+                                ${opt}
+                            </label>
+                        `;
+                    });
+                    
+                    questionElement.innerHTML = `
+                        <p class="font-medium mb-2 text-sm">${index + 1}. ${q.question_desc}</p>
+                        <div class="space-y-1" data-id="${q.question_id}">
+                            ${optionsHTML}
+                        </div>
+                    `;
+                    quizForm.appendChild(questionElement);
+                });
+                
+                // Tambahkan tombol submit ke form
+                const submitButton = document.createElement('button');
+                submitButton.type = 'submit';
+                submitButton.className = 'w-full mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700';
+                submitButton.textContent = 'Kirim Jawaban & Dapatkan Rekomendasi';
+                quizForm.appendChild(submitButton);
+
+                // Atur aksi submit
+                quizForm.onsubmit = (e) => {
+                    e.preventDefault();
+                    submitQuiz(interestName, quizQuestions, e.target);
+                };
+                
+                actionContainer.appendChild(quizForm);
+
+            } catch (error) {
+                removeLoadingBubble();
+                addBubble(`Maaf, gagal memuat kuis: ${error.message}`, 'bot');
+                showMainMenu();
+            }
+        }
+
+        /** (Step 1.3) Pengguna men-submit kuis */
+        async function submitQuiz(interestName, quizQuestions, form) {
+            addBubble("Jawaban saya sudah selesai!", 'user');
+            clearActions();
+            addBubble("Oke, sedang menghitung skor dan memanggil AI...", 'bot', true);
+
+            const answers = [];
+            quizQuestions.forEach(q => {
+                const selected = form.querySelector(`input[name="q_${q.question_id}"]:checked`);
+                if (selected) {
+                    answers.push({
+                        question_id: q.question_id,
+                        selected_answer: selected.value
+                    });
+                }
+            });
+
+            if (answers.length !== quizQuestions.length) {
+                removeLoadingBubble();
+                addBubble("Oops, sepertinya ada soal yang terlewat. Silakan coba lagi.", 'bot');
+                startQuiz(interestName); // Muat ulang kuis
+                return;
+            }
+
+            const payload = {
+                kategori_minat: interestName,
+                level: "beginner",
+                answers: answers
+            };
+
+            try {
+                const result = await apiFetch('/recommend/submit', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                removeLoadingBubble();
+                addBubble(result.bot_response, 'bot');
+                addBubble(`<strong>Saran Kursus:</strong> ${result.suggested_course_name || 'N/A'}`, 'bot');
+                showMainMenu(); // Selesai, kembali ke menu utama
+
+            } catch (error) {
+                removeLoadingBubble();
+                addBubble(`Maaf, gagal mendapat rekomendasi: ${error.message}`, 'bot');
+                showMainMenu();
+            }
+        }
+
+
+        // --- ALUR 2: TANYA TEKNIS ---
+        
+        /** (Step 2.1) Pengguna mengklik "Tanya Teknis" */
+        function startAskFlow() {
+            addBubble("Saya ingin bertanya soal teknis.", 'user');
+            clearActions();
+            addBubble("Tentu, silakan ketik pertanyaan Anda di bawah ini.", 'bot');
+            
+            const askForm = document.createElement('form');
+            askForm.className = 'space-y-3';
+            askForm.innerHTML = `
+                <input type="text" name="question" class="w-full p-2 border rounded-md" placeholder="Contoh: Apa itu Activity?">
+                <div class="flex justify-around">
+                    <label><input type="radio" name="tone" value="to the point" class="mr-1" checked> To the Point</label>
+                    <label><input type="radio" name="tone" value="santai" class="mr-1"> Santai</label>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Kirim Pertanyaan
+                </button>
+            `;
+            
+            askForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const question = e.target.question.value;
+                const tone = e.target.tone.value;
+                if (!question) return;
+
+                addBubble(question, 'user');
+                clearActions();
+                addBubble("Mencari jawaban (RAG)...", 'bot', true);
+
+                try {
+                    const result = await apiFetch('/ask', {
+                        method: 'POST',
+                        body: JSON.stringify({ question: question, preset: tone })
+                    });
+                    removeLoadingBubble();
+                    addBubble(result.bot_response.replace(/\n/g, '<br>'), 'bot');
+                    showMainMenu();
+
+                } catch (error) {
+                    removeLoadingBubble();
+                    addBubble(`Maaf, gagal bertanya: ${error.message}`, 'bot');
+                    showMainMenu();
+                }
+            };
+            actionContainer.appendChild(askForm);
+        }
+
+        // --- ALUR 3: CEK PROGRES ---
+
+
+        function startProgressFlow() {
+            addBubble("Saya ingin mengecek progres belajar.", 'user');
+            clearActions();
+            addBubble("Tentu, silakan masukkan email Anda (sesuai data di file `student_progress.csv`).", 'bot');
+            
+            const progressForm = document.createElement('form');
+            progressForm.className = 'flex space-x-2';
+            progressForm.innerHTML = `
+                <input type="email" name="email" class="w-full p-2 border rounded-md" placeholder="Contoh: sari.kusuma6@example.com">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Cek
+                </button>
+            `;
+
+            progressForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const email = e.target.email.value;
+                if (!email) return;
+
+                addBubble(email, 'user');
+                clearActions();
+                addBubble(`Mencari progres untuk ${email}...`, 'bot', true);
+
+                try {
+                    const result = await apiFetch('/progress/', {
+                        method: 'POST',
+                        body: JSON.stringify({ email: email })
+                    });
+                    removeLoadingBubble();
+                    addBubble(result.bot_response.replace(/\n/g, '<br>'), 'bot');
+                    showMainMenu();
+
+                } catch (error) {
+                    removeLoadingBubble();
+                    addBubble(`Maaf, gagal cek progres: ${error.message}`, 'bot');
+                    showMainMenu();
+                }
+            };
+            actionContainer.appendChild(progressForm);
+        }
+
+        // --- FUNGSI HELPER API (dari UI Tab) ---
+        // (Tetap sama, tidak perlu diubah)
+        async function apiFetch(endpoint, options = {}) {
+            const defaultHeaders = { 'Content-Type': 'application/json' };
+            const config = { ...options, headers: { ...defaultHeaders, ...options.headers } };
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching API:', error);
+                throw error;
+            }
+        }
+
+        // --- Mulai Aplikasi ---
+        showMainMenu();
+
+    </script>
+</body>
+</html>
