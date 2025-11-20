@@ -4,7 +4,7 @@ from typing import Optional, Literal, List
 # --- Model untuk /ask ---
 class AskRequest(BaseModel):
     question: str
-    preset: Literal["to the point", "santai"] = "to the point"
+    preset: Literal["to the point", "teman", "instruktor", "rekan"] = "to the point"
 
 class AskResponse(BaseModel):
     bot_response: str
