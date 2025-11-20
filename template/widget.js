@@ -18,6 +18,7 @@
         document.head.appendChild(link);
     }
 
+    // 3. Mulai Muat Vue
     loadScript(VUE_CDN_URL, () => {
         loadCSS(WIDGET_CSS_URL);
         
@@ -29,7 +30,7 @@
         const { createApp } = Vue;
         
         createApp({
-            // 5. Template (GANTI SELURUH BAGIAN INI)
+            // 5. Template
             template: `
                 <div>
                     <!-- Tombol Chat -->
@@ -79,6 +80,14 @@
                             </div>
                             
                             <div class="chat-footer">
+                                <!-- Dropdown Mode Chat (Popup) -->
+                                <select v-model="chatMode" class="mode-select" :disabled="isLoading">
+                                    <option value="to the point">To the Point</option>
+                                    <option value="teman">Teman</option>
+                                    <option value="instruktor">Instruktur</option>
+                                    <option value="rekan">Rekan Kerja</option>
+                                </select>
+
                                 <input 
                                     type="text" 
                                     class="chat-input" 
@@ -97,16 +106,13 @@
                         <!-- =================================== -->
                         <template v-if="windowState === 'fullscreen'">
                             
-                            <!-- Sidebar Panel Kuis / Asesmen -->
                             <div class="fs-sidebar" :class="{ 'quiz-active': showQuizPanel }">
                                 <div v-show="showQuizPanel" class="fs-quiz-container">
                                     
-                                    <!-- Header Progress Bar -->
                                     <div class="fs-quiz-header">
                                         <h4>{{ isAssessmentMode ? 'Tes Minat' : 'Kuis Teknis' }}</h4>
                                         
                                         <div class="fs-quiz-progress-bar">
-                                            <!-- Gunakan activeContext.questions -->
                                             <div v-for="(q, index) in activeContext.questions"
                                                  :key="'prog-'+ (q.id || q.question_id)" 
                                                  class="fs-quiz-progress-segment"
@@ -119,17 +125,14 @@
                                         <span class="fs-quiz-counter">{{ activeContext.currentQuestionIndex + 1 }} / {{ activeContext.questions.length }}</span>
                                     </div>
                                     
-                                    <!-- Body Soal -->
                                     <div class="fs-quiz-form" ref="quizFormFs">
                                         <template v-if="currentQuestion">
                                             <div class="fs-quiz-question">
-                                                <!-- Judul Soal -->
                                                 <p class="fs-quiz-desc">{{ isAssessmentMode ? currentQuestion.question : currentQuestion.question_desc }}</p>
                                                 
-                                                <!-- OPSI JAWABAN -->
                                                 <div class="fs-quiz-options">
                                                     
-                                                    <!-- MODE 1: ASESMEN (Opsi Dinamis dari Array) -->
+                                                    <!-- MODE 1: ASESMEN -->
                                                     <template v-if="isAssessmentMode">
                                                         <button v-for="opt in currentQuestion.options" 
                                                                 :key="opt.value"
@@ -140,7 +143,7 @@
                                                         </button>
                                                     </template>
 
-                                                    <!-- MODE 2: KUIS TEKNIS (Opsi Statis A-D) -->
+                                                    <!-- MODE 2: KUIS TEKNIS -->
                                                     <template v-else>
                                                         <button class="fs-quiz-option-btn" :class="{ 'selected': quizContext.userAnswers[currentQuestion.question_id] === currentQuestion.option_1 }" @click="selectAnswer(currentQuestion.option_1)">
                                                             <span>A.</span> {{ currentQuestion.option_1 }}
@@ -161,7 +164,6 @@
                                         </template>
                                     </div>
                                     
-                                    <!-- Footer Navigasi -->
                                     <div class="fs-quiz-footer">
                                         <button class="fs-quiz-nav-btn" 
                                                 @click="goToPrev"
@@ -169,7 +171,6 @@
                                             &lt;&lt; PREV
                                         </button>
                                         
-                                        <!-- Tombol NEXT -->
                                         <button class="fs-quiz-nav-btn" 
                                                 v-if="activeContext.currentQuestionIndex < activeContext.questions.length - 1"
                                                 @click="goToNext"
@@ -177,7 +178,6 @@
                                             NEXT &gt;&gt;
                                         </button>
                                         
-                                        <!-- Tombol SUBMIT (Beda fungsi tergantung mode) -->
                                         <template v-if="activeContext.currentQuestionIndex === activeContext.questions.length - 1">
                                             <button v-if="isAssessmentMode" class="fs-quiz-submit" @click="submitAssessment" :disabled="!allQuestionsAnswered || isLoading">
                                                 {{ isLoading ? 'Loading...' : 'Cek Hasil Minat' }}
@@ -191,14 +191,12 @@
                                 </div>
                             </div>
                             
-                            <!-- Area Chat (Tetap Sama) -->
                             <div class="fs-chat-area">
                                 <div class="fs-header">
                                     <span>Today</span>
                                     <button class="chat-header-close fs-close" @click="closeChat">&times;</button>
                                 </div>
                                 <div class="fs-body" ref="chatBodyFs">
-                                    <!-- ... (Loop Pesan Chat tidak berubah) ... -->
                                      <div v-for="(msg, index) in messages" :key="index" :class="['fs-message', msg.sender === 'klien' ? 'user' : 'buddy']">
                                         
                                         <div v-if="msg.sender === 'server'" class="fs-avatar buddy">
@@ -207,9 +205,7 @@
 
                                          <div class="fs-bubble">
                                             <div v-html="formatMessage(msg.text)"></div>
-                                            <!-- Tombol Quick Reply di Chat -->
                                             <div class="quick-reply-container" v-if="msg.options && msg.options.length > 0">
-                                                <!-- Tambahkan logika khusus jika tombolnya adalah 'Cek Minat' -->
                                                 <button v-for="option in msg.options" :key="option" class="quick-reply-button"
                                                     @click="sendQuickReply(option)">
                                                     {{ option }}
@@ -223,10 +219,23 @@
                                         </div>
 
                                     </div>
+                                    <div v-if="isLoading && !showQuizPanel" class="fs-message buddy">
+                                        <div class="fs-avatar buddy">
+                                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"></path></svg>
+                                        </div>
+                                        <div class="fs-bubble typing">...</div>
+                                    </div>
                                 </div>
                                 
-                                <!-- Footer Fullscreen (Input) -->
                                 <div class="fs-footer">
+                                    <!-- Dropdown Mode Chat (Fullscreen) -->
+                                    <select v-model="chatMode" class="mode-select fs-mode" :disabled="isLoading || showQuizPanel">
+                                        <option value="to the point">To the Point</option>
+                                        <option value="teman">Teman</option>
+                                        <option value="instruktor">Instruktur</option>
+                                        <option value="rekan">Rekan Kerja</option>
+                                    </select>
+
                                     <input 
                                         type="text" 
                                         class="fs-input" 
@@ -252,37 +261,32 @@
                     newMessage: '',
                     messages: [], 
                     
-                    // Alur saat ini:
                     currentFlow: 'main_menu', 
                     inputPlaceholder: 'Ketik atau pilih opsi...',
-                    
                     showQuizPanel: false, 
 
-                    // State Kuis Teknis (LAMA)
+                    // (BARU) State Mode Chat
+                    chatMode: 'to the point', // Default sesuai backend
+
                     quizContext: {
                         interest: null,
                         questions: [],
                         currentQuestionIndex: 0,
                         userAnswers: {} 
                     },
-
-                     // State Asesmen Minat (BARU)
-                    isAssessmentMode: false, // Flag penentu mode
+                    isAssessmentMode: false,
                     assessmentContext: {
                         questions: [],
                         currentQuestionIndex: 0,
-                        answers: [] // Array string kategori
+                        answers: []
                     }
                 };
             },
-            // 7. Computed Properties (TAMBAHKAN BLOK INI)
+            // 7. Computed Properties
             computed: {
-                // Helper Cerdas: Mengembalikan konteks yang sedang aktif
                 activeContext() {
                     return this.isAssessmentMode ? this.assessmentContext : this.quizContext;
                 },
-                
-                // Mengambil soal saat ini (berlaku untuk kedua mode)
                 currentQuestion() {
                     const ctx = this.activeContext;
                     if (ctx.questions && ctx.questions.length > 0) {
@@ -290,24 +294,16 @@
                     }
                     return null;
                 },
-
-                // Cek apakah soal ini sudah dijawab
                 currentAnswerSelected() {
                     if (!this.currentQuestion) return false;
-                    
                     if (this.isAssessmentMode) {
-                        // Cek array answers di index saat ini
                         return !!this.assessmentContext.answers[this.assessmentContext.currentQuestionIndex];
                     } else {
-                        // Cek object userAnswers dengan key question_id
                         return !!this.quizContext.userAnswers[this.currentQuestion.question_id];
                     }
                 },
-
-                // Cek kelengkapan (untuk tombol submit)
                 allQuestionsAnswered() {
                     if (this.isAssessmentMode) {
-                         // Filter slot kosong
                         const answered = this.assessmentContext.answers.filter(a => a).length;
                         return answered === this.assessmentContext.questions.length;
                     } else {
@@ -316,12 +312,10 @@
                     }
                 }
             },
-            // 7. Methods (Logika UI & API)
+            // 8. Methods
             methods: {
-                // --- Fungsi Bantuan & Navigasi UI ---
                 scrollToBottom() {
                     this.$nextTick(() => {
-                        // Cek ref mana yang sedang aktif (popup atau fullscreen)
                         const body = this.$refs.chatBody || this.$refs.chatBodyFs;
                         if (body) { body.scrollTop = body.scrollHeight; }
                     });
@@ -339,8 +333,6 @@
                         }
                     }
                 },
-                
-                // --- Fungsi Tampilan (Navigasi UI) ---
                 togglePopup() {
                     if (this.windowState === 'closed') {
                         this.windowState = 'popup';
@@ -354,7 +346,6 @@
                 goFullscreen() { this.windowState = 'fullscreen'; },
                 closeChat() { this.windowState = 'closed'; },
 
-                // Menampilkan menu utama
                 showInitialTemplates() {
                     this.messages.push({
                         sender: 'server',
@@ -365,8 +356,6 @@
                     this.inputPlaceholder = 'Ketik atau pilih opsi...';
                     this.scrollToBottom();
                 },
-
-                // Reset state kuis
                 resetQuizContext() {
                     this.quizContext = {
                         interest: null,
@@ -377,12 +366,11 @@
                     this.showQuizPanel = false;
                 },
                 
-                // --- Fungsi Pengiriman Pesan ---
                 sendQuickReply(text) {
                     this.messages.push({ sender: 'klien', text: text });
                     this.scrollToBottom();
                     this.removeLastOptions();
-                    this.handleMessage(text); // Kirim ke "otak"
+                    this.handleMessage(text);
                 },
                 sendMessage() {
                     const msgText = this.newMessage.trim();
@@ -391,10 +379,9 @@
                     this.messages.push({ sender: 'klien', text: msgText });
                     this.newMessage = '';
                     this.scrollToBottom();
-                    this.handleMessage(msgText); // Kirim ke "otak"
+                    this.handleMessage(msgText);
                 },
 
-                // --- "Otak" Frontend (State Machine) ---
                 async handleMessage(msgText) {
                     this.isLoading = true;
                     this.removeLastOptions();
@@ -402,42 +389,31 @@
                     
                     try {
                         switch (this.currentFlow) {
-                            // 1. User mengetik email setelah memilih "Cek Progres"
                             case 'awaiting_email':
-                                await this.callProgressApi(msgText); // msgText adalah email
+                                await this.callProgressApi(msgText);
                                 break;
-                                
-                            // 2. User mengetik pertanyaan setelah memilih "Tanya Soal"
                             case 'awaiting_question':
-                                await this.callAskApi(msgText); // msgText adalah pertanyaan
+                                await this.callAskApi(msgText);
                                 break;
-
-                            // 3. User memilih minat untuk kuis
                             case 'recommend_await_interest':
                                 this.quizContext.interest = msgText;
                                 await this.callGetQuizApi();
                                 break;
-                            
-                            // 6. User berada di menu utama
                             case 'main_menu':
                             default:
                                 if (msgLower.includes("cek progres")) {
                                     this.messages.push({ sender: 'server', text: 'Tentu, silakan masukkan email Anda:' });
                                     this.currentFlow = 'awaiting_email';
                                     this.inputPlaceholder = 'Ketik email Anda...';
-
                                 } else if (msgLower.includes("rekomendasi kuis")) {
-                                    await this.startQuizFlow(); // Memulai alur kuis
-                                
+                                    await this.startQuizFlow();
                                 } else if (msgLower.includes("cek minat") || msgLower.includes("minat belajar")) {
                                      await this.startAssessmentFlow();
-                                
                                 } else if (msgLower.includes("tanya") || msgLower.includes("soal")) {
                                     this.messages.push({ sender: 'server', text: 'Silakan ketik pertanyaan Anda:' });
                                     this.currentFlow = 'awaiting_question';
                                     this.inputPlaceholder = 'Ketik pertanyaan Anda...';
                                 } else {
-                                    // Jika user mengetik di menu utama, anggap itu pertanyaan
                                     await this.callAskApi(msgText);
                                 }
                                 break;
@@ -448,10 +424,7 @@
                     } finally {
                         this.isLoading = false;
                         this.scrollToBottom();
-                        
-                        // Jika alur sudah kembali ke menu utama, tampilkan opsi lagi
                         if (this.currentFlow === 'main_menu' && !this.isLoading) {
-                           // Cek agar tidak duplikat menu
                            const lastMsg = this.messages[this.messages.length - 1];
                            if (!lastMsg.options) {
                                this.showInitialTemplates();
@@ -460,9 +433,6 @@
                     }
                 },
 
-                // --- Fungsi Panggilan API (Sesuai Backend) ---
-                
-                // FITUR 3: Cek Progres (SUDAH DISESUAIKAN)
                 async callProgressApi(email) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/api/v1/progress`, { 
@@ -470,17 +440,12 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email: email })
                         });
-
                         if (!response.ok) {
                             const errData = await response.json();
                             throw new Error(errData.detail || `Email tidak ditemukan`);
                         }
-                        
                         const data = await response.json();
-
-                        // Backend mengembalikan { bot_response: "..." }
                         this.messages.push({ sender: "server", text: data.bot_response });
-
                     } catch (error) {
                         console.error("Error di callProgressApi:", error);
                         this.messages.push({ sender: "server", text: `Maaf, terjadi kesalahan: ${error.message}` });
@@ -490,7 +455,7 @@
                     }
                 },
 
-                // FITUR 2: Tanya Soal (SUDAH DISESUAIKAN)
+                // FITUR 2: Tanya Soal (Updated dengan chatMode)
                 async callAskApi(question) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/api/v1/ask`, {
@@ -498,7 +463,7 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
                                 question: question,
-                                preset: "santai" // Bisa juga "to the point"
+                                preset: this.chatMode // <-- GUNAKAN NILAI DARI DROPDOWN
                             }) 
                         });
                         if (!response.ok) throw new Error('API /ask gagal');
@@ -514,16 +479,13 @@
                     }
                 },
 
-                // --- FITUR 1: Alur Rekomendasi Kuis (BARU) ---
-
-                // Panggil: GET /api/v1/recommend/interests
                 async startQuizFlow() {
-                    this.resetQuizContext(); // Bersihkan ingatan kuis sebelumnya
+                    this.resetQuizContext();
                     const response = await fetch(`${API_BASE_URL}/api/v1/recommend/interests`);
                     if (!response.ok) throw new Error(`API /recommend/interests gagal`);
                     
-                    const data = await response.json(); // List[InterestResponse]
-                    const interests = data.map(item => item.name); // Ambil namanya saja
+                    const data = await response.json();
+                    const interests = data.map(item => item.name);
 
                     this.messages.push({
                         sender: 'server',
@@ -533,9 +495,7 @@
                     this.currentFlow = 'recommend_await_interest';
                 },
 
-                // Panggil: GET /api/v1/recommend/quiz
                 async callGetQuizApi() {
-                    // (BARU) Tampilkan loading di chat
                     this.isLoading = true;
                     this.messages.push({ sender: 'server', text: 'Mempersiapkan kuis campuran untuk Anda...' });
                     this.scrollToBottom();
@@ -546,28 +506,27 @@
 
                     const response = await fetch(`${API_BASE_URL}/api/v1/recommend/quiz?${params}`);
                     
-                    this.isLoading = false; // Hentikan loading
-                    this.removeLastOptions(); // Hapus "..."
+                    this.isLoading = false;
+                    this.removeLastOptions();
 
                     if (!response.ok) {
                         const errData = await response.json();
                         this.messages.push({ sender: 'server', text: `Maaf, gagal memuat kuis: ${errData.detail}` });
                         this.scrollToBottom();
-                        this.currentFlow = 'main_menu'; // Kembalikan ke menu
+                        this.currentFlow = 'main_menu';
                         this.showInitialTemplates();
-                        return; // Hentikan eksekusi
+                        return;
                     }
                     
-                    const data = await response.json(); // List[QuizQuestion]
+                    const data = await response.json();
                     this.quizContext.questions = data;
-                    this.quizContext.currentQuestionIndex = 0; // Reset
-                    this.quizContext.answers = []; // Reset
+                    this.quizContext.currentQuestionIndex = 0;
+                    this.quizContext.answers = [];
 
                     if (this.quizContext.questions.length > 0) {
-                        // (BARU) Tampilkan panel kuis dan paksa fullscreen
                         this.showQuizPanel = true;
                         this.goFullscreen();
-                        this.currentFlow = 'recommend_await_quiz_answer'; // Ganti flow
+                        this.currentFlow = 'recommend_await_quiz_answer'; 
                     } else {
                         this.messages.push({ sender: 'server', text: 'Tidak ada pertanyaan kuis yang ditemukan untuk minat tersebut.' });
                         this.currentFlow = 'main_menu';
@@ -576,106 +535,72 @@
                     this.scrollToBottom();
                 },
 
-
-                // (MODIFIKASI) Mengumpulkan semua jawaban dari kuis paginasi
                 async submitFullQuiz() {
                     this.isLoading = true; 
-                    
-                    // 1. Cek ulang apakah semua sudah terjawab
                     if (!this.allQuestionsAnswered) {
                          alert("Harap jawab semua pertanyaan kuis sebelum mengirim.");
                          this.isLoading = false;
                          return;
                     }
-
-                    // 2. Ubah format jawaban dari {q_id: "teks"} menjadi [{question_id: q_id, selected_answer: "teks"}]
                     const formattedAnswers = Object.entries(this.quizContext.userAnswers).map(([q_id, answer_text]) => {
                         return {
-                            question_id: parseInt(q_id), // Pastikan ID adalah angka
+                            question_id: parseInt(q_id),
                             selected_answer: answer_text
                         };
                     });
-
-                    // 3. Simpan jawaban yg sudah diformat & panggil API
                     this.quizContext.answers = formattedAnswers;
-                    
                     this.messages.push({ sender: 'klien', text: 'Kuis saya sudah selesai, ini jawabannya.' });
                     this.scrollToBottom();
-                    
-                    // 4. Panggil API submit yang lama (logikanya sudah diubah di backend)
                     await this.callSubmitQuizApi(); 
                 },
 
-                // Panggil: POST /api/v1/recommend/submit (MODIFIKASI)
                 async callSubmitQuizApi() {
                     const body = {
                         kategori_minat: this.quizContext.interest,
                         answers: this.quizContext.answers
                     };
-
                     const response = await fetch(`${API_BASE_URL}/api/v1/recommend/submit`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(body)
                     });
                     
-                    // (BARU) Sembunyikan panel kuis & matikan loading
                     this.showQuizPanel = false;
                     this.isLoading = false;
 
                     if (!response.ok) {
                         const errData = await response.json();
-                        // throw new Error(errData.detail || 'Gagal mengirimkan kuis'); <-- Jangan lempar error
                         this.messages.push({ sender: 'server', text: `Maaf, gagal mengirim kuis: ${errData.detail}` });
                         this.scrollToBottom();
                         this.currentFlow = 'main_menu';
                         this.resetQuizContext();
-                        this.showInitialTemplates(); // Tampilkan menu lagi
+                        this.showInitialTemplates();
                         return;
                     }
 
-                    const data = await response.json(); // SubmitResponse
-                    
-                    // Tampilkan rekomendasi dari Gemini
-                    this.messages.push({
-                        sender: 'server',
-                        text: data.bot_response
-                    });
-                    
-                    this.messages.push({
-                        sender: 'server',
-                        text: `Rekomendasi kursus untukmu: **${data.suggested_course_name}**`
-                    });
-
+                    const data = await response.json();
+                    this.messages.push({ sender: 'server', text: data.bot_response });
+                    this.messages.push({ sender: 'server', text: `Rekomendasi kursus untukmu: **${data.suggested_course_name}**` });
                     this.currentFlow = 'main_menu';
-                    this.resetQuizContext(); // resetQuizContext sudah menyembunyikan panel
+                    this.resetQuizContext();
                     this.scrollToBottom();
-                    this.showInitialTemplates(); // Tampilkan menu lagi
+                    this.showInitialTemplates();
                 },
                 
-                // --- FITUR 4: ASESMEN MINAT (BARU) ---
-
-                // 1. Mulai Flow Asesmen
                 async startAssessmentFlow() {
-                    this.isAssessmentMode = true; // Aktifkan mode
+                    this.isAssessmentMode = true;
                     this.isLoading = true;
                     this.goFullscreen();
-                    
                     try {
-                        // Panggil API baru
                         const response = await fetch(`${API_BASE_URL}/api/v1/assessment/questions`);
                         const data = await response.json();
-                        
                         if (!data || data.length === 0) throw new Error("Data asesmen kosong");
-                        
                         this.assessmentContext = {
                             questions: data,
                             currentQuestionIndex: 0,
                             answers: new Array(data.length).fill(null)
                         };
-                        
                         this.showQuizPanel = true; 
-
                     } catch (error) {
                         console.error(error);
                         this.messages.push({ sender: 'server', text: "Gagal memuat asesmen." });
@@ -685,15 +610,11 @@
                     }
                 },
 
-                // Handler Jawaban Asesmen
                 selectAssessmentAnswer(categoryValue) {
                     const idx = this.assessmentContext.currentQuestionIndex;
                     this.assessmentContext.answers[idx] = categoryValue;
-                    // Auto-next opsional:
-                    // if (idx < this.assessmentContext.questions.length - 1) this.goToNext();
                 },
 
-                // Submit Hasil Asesmen
                 async submitAssessment() {
                     this.isLoading = true;
                     try {
@@ -706,18 +627,14 @@
                         const result = await response.json();
                         
                         this.showQuizPanel = false;
-                        this.isAssessmentMode = false; // Reset mode
-                        
+                        this.isAssessmentMode = false; 
                         this.messages.push({ sender: 'klien', text: "Saya sudah selesai tes minat." });
                         this.messages.push({ 
                             sender: 'server', 
                             text: `Berdasarkan jawabanmu, jalur yang paling cocok adalah: **${result.recommended_path}**\n\n${result.description}` 
                         });
-                        
-                        // Reset to main menu and show options
                         this.currentFlow = 'main_menu';
                         this.showInitialTemplates();
-
                     } catch (error) {
                         this.messages.push({ sender: 'server', text: "Gagal memproses hasil." });
                     } finally {
@@ -726,16 +643,11 @@
                     }
                 },
 
-                // Handler Jawaban Kuis Teknis
                 selectAnswer(optionText) {
                     if (!this.currentQuestion) return;
-                    
-                    // Simpan jawaban
                     this.quizContext.userAnswers[this.currentQuestion.question_id] = optionText;
                 },
 
-
-                // --- UPDATE FUNGSI NAVIGASI (SHARED) ---
                 goToNext() {
                     const ctx = this.activeContext;
                     if (ctx.currentQuestionIndex < ctx.questions.length - 1) {
@@ -748,8 +660,7 @@
                         ctx.currentQuestionIndex--;
                     }
                 },
-
             }
-        }).mount('#learning-buddy-app'); // Mount aplikasi
+        }).mount('#learning-buddy-app');
     });
 })();
