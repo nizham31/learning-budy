@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException, Query
 from schemas.chat import (
     InterestResponse, QuizQuestion, 
@@ -50,32 +51,59 @@ async def get_interests():
 @router.get("/quiz", response_model=List[QuizQuestion])
 async def get_quiz(
     kategori_minat: str = Query(..., example="Android Developer"), # Terima nama lengkap
-    level: Literal["beginner", "intermediate", "advanced"] = Query("beginner")
 ):
     """
-    FITUR 1 (Step 2): Mengambil soal kuis berdasarkan minat dan level.
+    FITUR 1 (Step 2): Mengambil 15 soal kuis campuran (5 per level).
     """
     
-    # --- INI PERBAIKANNYA ---
-    # 1. Ambil nama lengkap dari API Dicoding (misal: "AI Engineer")
-    # 2. Terjemahkan ke nama kategori di Mock DB (misal: "AI")
+    # 1. Terjemahkan nama minat (Logika ini tetap sama)
     tech_category_mock = CATEGORY_MAP.get(kategori_minat, kategori_minat)
     print(f"[DEBUG] Menerjemahkan minat: '{kategori_minat}' -> '{tech_category_mock}'")
-    # -------------------------
+    
+    select_query = "id,question_desc,option_1,option_2,option_3,option_4"
+    
+    # 2. Ambil 5 soal per level secara paralel
+    try:
+        data_beginner, data_intermediate, data_advanced = await asyncio.gather(
+            call_supabase_api(
+                "Tech Questions", db_type="mock",
+                params={
+                    "tech_category": f"eq.{tech_category_mock}",
+                    "difficulty": "eq.beginner",
+                    "select": select_query,
+                    "limit": 5
+                }
+            ),
+            call_supabase_api(
+                "Tech Questions", db_type="mock",
+                params={
+                    "tech_category": f"eq.{tech_category_mock}",
+                    "difficulty": "eq.intermediate",
+                    "select": select_query,
+                    "limit": 5
+                }
+            ),
+            call_supabase_api(
+                "Tech Questions", db_type="mock",
+                params={
+                    "tech_category": f"eq.{tech_category_mock}",
+                    "difficulty": "eq.advanced",
+                    "select": select_query,
+                    "limit": 5
+                }
+            )
+        )
+    except Exception as e:
+        print(f"Error fetching quiz data: {e}")
+        raise HTTPException(status_code=500, detail="Gagal mengambil data kuis dari Supabase.")
 
-    data = await call_supabase_api(
-        "Tech Questions",  # <-- Menggunakan nama tabel baru Anda
-        db_type="mock",
-        params={
-            "tech_category": f"eq.{tech_category_mock}", # <-- Gunakan nama yang sudah diterjemahkan
-            "difficulty": f"eq.{level}",
-            "select": "id,question_desc,option_1,option_2,option_3,option_4"
-        }
-    )
+    # 3. Gabungkan semua hasil
+    data_combined = (data_beginner or []) + (data_intermediate or []) + (data_advanced or [])
     
-    if not data:
-        raise HTTPException(status_code=404, detail=f"Kuis untuk {kategori_minat} (kategori: {tech_category_mock}) level {level} tidak ditemukan.")
+    if not data_combined:
+        raise HTTPException(status_code=404, detail=f"Kuis untuk {kategori_minat} (kategori: {tech_category_mock}) tidak ditemukan.")
     
+    # 4. Buat daftar pertanyaan
     questions = [
         QuizQuestion(
             question_id=item['id'],
@@ -84,8 +112,9 @@ async def get_quiz(
             option_2=item['option_2'],
             option_3=item['option_3'],
             option_4=item['option_4']
-        ) for item in data
+        ) for item in data_combined
     ]
+    
     return questions
 
 # --- Endpoint 3: Submit Jawaban & Dapatkan Rekomendasi (DENGAN PERBAIKAN) ---
@@ -93,20 +122,17 @@ async def get_quiz(
 @router.post("/submit", response_model=SubmitResponse)
 async def handle_submission(request: SubmitRequest):
     """
-    FITUR 1 (Step 3): Menerima jawaban kuis, menghitung skor di backend,
+    FITUR 1 (Step 3): Menerima jawaban kuis (tanpa level), menghitung skor,
     dan mengembalikan rekomendasi dinamis dari AI.
     """
     
-    # 1. Dapatkan jawaban yang benar dari Supabase
+    # 1. Dapatkan jawaban yang benar (Logika ini tetap sama)
     question_ids = [answer.question_id for answer in request.answers]
-
-    # Cek jika question_ids kosong (karena error di /quiz)
     if not question_ids:
-        raise HTTPException(status_code=400, detail="Tidak ada jawaban yang diterima. Kemungkinan kuis gagal dimuat.")
+        raise HTTPException(status_code=400, detail="Tidak ada jawaban yang diterima.")
 
     correct_answers_data = await call_supabase_api(
-        "Tech Questions",  
-        db_type="mock",
+        "Tech Questions", db_type="mock",
         params={
             "id": f"in.({','.join(map(str, question_ids))})",
             "select": "id,correct_answer"
@@ -118,10 +144,7 @@ async def handle_submission(request: SubmitRequest):
         
     correct_answer_map = {item['id']: item['correct_answer'] for item in correct_answers_data}
     
-    # ... (Sisa fungsi ini dari baris 100 ke bawah sudah benar semua) ...
-    # ... (Logika hitung skor, tentukan level, cari kursus, panggil gemini) ...
-
-    # 2. Hitung Skor (Logika ini tidak berubah)
+    # 2. Hitung Skor (Logika ini tetap sama)
     skor = 0
     total_soal = len(request.answers)
     for answer in request.answers:
@@ -130,18 +153,23 @@ async def handle_submission(request: SubmitRequest):
             if answer.selected_answer == jawaban_benar:
                 skor += 1
                 
-    # 3. Tentukan Level Rekomendasi (Logika ini tidak berubah)
+    # 3. Tentukan Level Rekomendasi (LOGIKA BARU BERDASARKAN PERSENTASE)
     level_rekomendasi_str = "Dasar"
     level_rekomendasi_id = 1 
     
-    if request.level == "beginner" and skor >= (total_soal * 0.7): 
-        level_rekomendasi_str = "Menengah"
-        level_rekomendasi_id = 3 
+    if total_soal > 0:
+        persentase = skor / total_soal
+        if persentase >= 0.6: # Jika skor 60% atau lebih, rekomendasikan level menengah
+            level_rekomendasi_str = "Menengah"
+            level_rekomendasi_id = 3
+        # Anda bisa menambahkan logika "Ahli" di sini jika mau
+        # elif persentase >= 0.85:
+        #    level_rekomendasi_str = "Ahli"
+        #    level_rekomendasi_id = 4 # (Asumsi id 4 adalah Ahli)
     
-    # 4. Cari Kursus yang Cocok
+    # 4. Cari Kursus yang Cocok (Logika ini tetap sama)
     lp_data = await call_supabase_api(
-        "learning_paths",
-        db_type="dicoding",
+        "learning_paths", db_type="dicoding",
         params={"learning_path_name": f"eq.{request.kategori_minat}", "select": "learning_path_id", "limit": 1}
     )
     
@@ -151,8 +179,7 @@ async def handle_submission(request: SubmitRequest):
     lp_id = lp_data[0]['learning_path_id']
 
     kursus_cocok = await call_supabase_api(
-        "courses",
-        db_type="dicoding",
+        "courses", db_type="dicoding",
         params={
             "learning_path_id": f"eq.{lp_id}",
             "course_level_str": f"eq.{level_rekomendasi_id}",
@@ -167,9 +194,9 @@ async def handle_submission(request: SubmitRequest):
         nama_kursus_rekomendasi = kursus_cocok[0].get('course_name')
         id_kursus_rekomendasi = kursus_cocok[0].get('course_id')
 
-    # 5. Buat prompt untuk Gemini
+    # 5. Buat prompt untuk Gemini (Menghapus 'level' dari prompt)
     prompt = f"""
-    Seorang pengguna baru saja menyelesaikan kuis minat '{request.kategori_minat}' level '{request.level}' dengan skor {skor} dari {total_soal}.
+    Seorang pengguna baru saja menyelesaikan kuis minat '{request.kategori_minat}' dengan skor {skor} dari {total_soal}.
     Berdasarkan skor ini, kami merekomendasikan dia untuk mengambil kursus level '{level_rekomendasi_str}' bernama '{nama_kursus_rekomendasi}'.
     
     Tolong buatkan respons yang dinamis, ramah, dan memotivasi untuk pengguna ini (dalam Bahasa Indonesia), yang menjelaskan mengapa mereka mendapatkan rekomendasi ini 
@@ -180,7 +207,7 @@ async def handle_submission(request: SubmitRequest):
     =======
     """
     
-    # 6. Panggil Gemini
+    # 6. Panggil Gemini (Logika ini tetap sama)
     jawaban_ai = await call_gemini_api(prompt)
     
     return SubmitResponse(

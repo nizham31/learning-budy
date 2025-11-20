@@ -39,7 +39,6 @@ class QuizAnswer(BaseModel):
 
 class SubmitRequest(BaseModel):
     kategori_minat: str
-    level: Literal["beginner", "intermediate", "advanced"]
     answers: List[QuizAnswer]
 
 # Model untuk response /submit (rekomendasi final)
@@ -47,6 +46,22 @@ class SubmitResponse(BaseModel):
     bot_response: str
     suggested_course_name: Optional[str] = None
     suggested_course_id: Optional[int] = None
+
+class AssessmentOption(BaseModel):
+    text: str
+    value: str # Ini akan berisi kategori (misal: "Mobile Development")
+
+class AssessmentQuestion(BaseModel):
+    id: int
+    question: str
+    options: List[AssessmentOption]
+
+class AssessmentSubmitRequest(BaseModel):
+    answers: List[str] # List kategori yang dipilih user (misal: ["Mobile", "Web", "Mobile"...])
+
+class AssessmentResponse(BaseModel):
+    recommended_path: str
+    description: str
     
 # --- Hapus Model RecommendRequest & RecommendResponse yang lama ---
 # class RecommendRequest(BaseModel): ... (HAPUS INI)
