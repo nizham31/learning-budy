@@ -52,7 +52,7 @@
 
 /* 1. Sidebar Kiri */
 .chat-window.fullscreen .fs-sidebar {
-    width: 80px; /* Lebar sidebar */
+    width: 90px; /* Lebar sidebar */
     height: 100vh;
     background-color: #0F172A; /* Biru sangat gelap (sesuai gambar) */
     flex-shrink: 0;
@@ -76,7 +76,7 @@
 .chat-window.fullscreen .fs-header {
     text-align: center;
     padding: 20px;
-    color: #64748B; /* Abu-abu */
+    color: #0F172A; /* Abu-abu */
     font-weight: 500;
     border-bottom: 1px solid #E2E8F0;
     position: relative; /* Untuk tombol close */
@@ -235,7 +235,7 @@
 /* 5. Footer Fullscreen (Input Area) */
 .chat-window.fullscreen .fs-footer {
     padding: 16px 24px;
-    background-color: #FFFFFF;
+    background-color: #0F172A;
     border-top: 1px solid #E2E8F0;
     display: flex;
     align-items: center;
@@ -246,12 +246,13 @@
     margin-right: auto; /* Pusatkan */
     width: 100%;       /* Agar tetap responsif */
     box-sizing: border-box;
+    border-radius: 10px;
 }
 
 .chat-window.fullscreen .fs-input {
     flex-grow: 1;
     border: 1px solid #CBD5E1;
-    border-radius: 24px; /* Lebih bulat */
+    border-radius: 10px; /* Lebih bulat */
     padding: 12px 20px;
     font-size: 15px;
     outline: none;

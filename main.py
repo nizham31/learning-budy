@@ -28,6 +28,7 @@ app.mount(
     StaticFiles(directory="template"),  # Lokasi file statis di server
     name="widget-static"
 )
+
 @app.get("/")
 async def read_root():
     return {
