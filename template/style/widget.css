@@ -121,28 +121,24 @@
   background-color: var(--col-bg-chat);
 }
 
-/* GEMINI STYLE FOOTER (POPUP) 
-   Mengubah Footer menjadi 'Floating Pill' 
-*/
+/* GEMINI STYLE FOOTER (POPUP) */
 .chat-footer {
   display: flex; 
   align-items: center; 
   flex-shrink: 0;
-  
-  /* Styling Kapsul Melayang */
-  margin: 10px;               /* Memberi jarak dari tepi (floating) */
-  padding: 5px 8px;           /* Padding dalam kapsul */
+  margin: 10px;               
+  padding: 5px 8px;           
   background-color: var(--col-white);
-  border: 2px solid var(--col-soft-blue); /* Border tebal di container */
-  border-radius: 50px;        /* Bentuk Pill */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Shadow halus */
+  border: 2px solid var(--col-soft-blue); 
+  border-radius: 50px;        
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
 }
 
-/* Input Field (Popup) - Borderless & Transparan */
+/* Input Field (Popup) */
 .chat-input {
   flex-grow: 1; 
   background-color: transparent; 
-  border: none;      /* Hapus border input karena sudah ada di footer */
+  border: none;      
   outline: none; 
   padding: 10px 12px; 
   font-size: 15px;
@@ -192,22 +188,51 @@
   align-self: flex-start;
   border-bottom-left-radius: 4px;
 }
-.chat-message.server.typing {
-  font-style: italic;
-  color: var(--col-soft-blue);
-  background-color: transparent;
-  border: none;
+
+/* --- Typing Indicator Style --- */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
 }
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  margin: 0 2px;
+  background-color: var(--col-soft-blue); /* Warna dot */
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+.chat-message.server.typing {
+  /* Hapus border default jika perlu atau styling khusus */
+  padding: 12px 16px;
+}
+
 
 /* ========================================= */
 /* 4. MODE FULLSCREEN                        */
 /* ========================================= */
 .chat-window.fullscreen {
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    /* Gunakan fixed position ke semua sisi agar full viewport */
+    top: 0; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto; /* Jangan gunakan 100vh untuk container utama di mobile */
+    
     border: none; border-radius: 0;
     box-shadow: none;
-    bottom: auto; right: auto;
     display: flex; flex-direction: row;
     background: var(--col-white);
 }
@@ -222,7 +247,7 @@
 /* Sidebar Fullscreen */
 .chat-window.fullscreen .fs-sidebar {
     width: 90px;
-    height: 100vh;
+    height: 100%; /* Gunakan 100% relatif terhadap parent */
     background-color: var(--col-darkest);
     flex-shrink: 0;
     display: flex;
@@ -237,9 +262,10 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%; /* Gunakan 100% agar tidak melebihi viewport */
     background-color: var(--col-bg-chat); 
     position: relative;
+    overflow: hidden; /* Mencegah scroll ganda */
 }
 
 /* Header Fullscreen */
@@ -332,8 +358,10 @@
     border: 1px solid var(--col-soft-blue);
     border-bottom-left-radius: 4px; border-bottom-right-radius: 18px;
 }
+
 .chat-window.fullscreen .fs-bubble.typing {
-    font-style: italic; color: var(--col-medium-blue);
+    /* Style untuk bubble typing fullscreen */
+    padding: 12px 20px;
 }
 
 /* Quick Replies */
@@ -359,9 +387,7 @@
     transform: translateX(3px);
 }
 
-/* GEMINI STYLE FOOTER (FULLSCREEN) 
-   Floating Pill Style 
-*/
+/* GEMINI STYLE FOOTER (FULLSCREEN) */
 .chat-window.fullscreen .fs-footer {
     position: absolute; /* Floating di atas konten */
     bottom: 30px;
@@ -386,7 +412,7 @@
     z-index: 100;
 }
 
-/* Input Fullscreen - Borderless & Menyatu */
+/* Input Fullscreen */
 .chat-window.fullscreen .fs-input {
     flex-grow: 1;
     background-color: transparent; /* Transparan */
@@ -543,4 +569,71 @@
 .mode-select.fs-mode option {
     background-color: var(--col-darkest);
     color: var(--col-white);
+}
+
+/* ========================================= */
+/* 7. RESPONSIVE / MOBILE STYLE (BARU)       */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* A. MODE POPUP DI HP 
+       Otomatis jadi fullscreen agar tidak kekecilan
+    */
+    .chat-window:not(.fullscreen) {
+        width: 100% !important;
+        height: 100% !important;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: 0;
+        border: none;
+    }
+    
+    /* Tombol Floating tetap ada di pojok bawah */
+    .chat-button {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    /* B. MODE FULLSCREEN (KUIS) DI HP
+       Layout berubah dari Kiri-Kanan menjadi Atas-Bawah
+    */
+    .chat-window.fullscreen {
+        flex-direction: column;
+    }
+
+    /* Sidebar disembunyikan jika tidak ada kuis aktif */
+    .chat-window.fullscreen .fs-sidebar:not(.quiz-active) {
+        display: none;
+    }
+
+    /* Sidebar (Kuis) muncul di Atas (50% layar) */
+    .chat-window.fullscreen .fs-sidebar.quiz-active {
+        width: 100%;
+        min-width: 100%;
+        max-width: none;
+        height: 50vh; /* Setengah layar untuk soal */
+        border-right: none;
+        border-bottom: 2px solid var(--col-medium-blue);
+    }
+
+    /* Area Chat mengisi sisa layar (Bawah) */
+    .chat-window.fullscreen .fs-chat-area {
+        height: auto;
+        flex-grow: 1;
+    }
+
+    /* Footer Input Melayang di HP */
+    .chat-window.fullscreen .fs-footer {
+        width: 95%; /* Lebih lebar di HP */
+        bottom: 40px; /* Dinaikkan dari 20px agar aman */
+        padding: 8px 12px;
+    }
+    
+    /* Penyesuaian Body agar bisa discroll sampai bawah */
+    .chat-window.fullscreen .fs-body {
+        padding-bottom: 120px; /* Extra padding bawah */
+    }
+
+    /* Penyesuaian Font Size di HP */
+    .fs-quiz-desc { font-size: 1em; }
+    .fs-quiz-option-btn { padding: 10px 14px; font-size: 0.95em; }
 }

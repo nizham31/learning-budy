@@ -1,6 +1,6 @@
 (function () {
   // 1. Konfigurasi
-  const API_BASE_URL = "https://learning-budy-chatbot.vercel.app"; // Sesuaikan jika backend di-deploy
+  const API_BASE_URL = "http://localhost:8000"; // Sesuaikan jika backend di-deploy
   const WIDGET_CSS_URL = API_BASE_URL + "/widget/style/widget.css"; // Asumsi CSS ada di backend
   const VUE_CDN_URL = "https://unpkg.com/vue@3/dist/vue.global.js";
 
@@ -91,7 +91,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div v-if="isLoading" class="chat-message server typing">...</div>
+                                <!-- LOADING INDICATOR POPUP -->
+                                <div v-if="isLoading" class="chat-message server typing">
+                                    <div class="typing-indicator">
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="chat-footer">
@@ -212,7 +219,7 @@
                                     <button class="chat-header-close fs-close" @click="closeChat">&times;</button>
                                 </div>
                                 <div class="fs-body" ref="chatBodyFs">
-                            <div v-for="(msg, index) in messages" :key="index" :class="['fs-message', msg.sender === 'klien' ? 'user' : 'buddy']">
+     <div v-for="(msg, index) in messages" :key="index" :class="['fs-message', msg.sender === 'klien' ? 'user' : 'buddy']">
         
         <div v-if="msg.sender === 'server'" class="fs-avatar buddy">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"></path></svg>
@@ -234,11 +241,18 @@
 
     </div>
 
+    <!-- LOADING INDICATOR FULLSCREEN -->
     <div v-if="isLoading && !showQuizPanel" class="fs-message buddy">
         <div class="fs-avatar buddy">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z"></path></svg>
         </div>
-        <div class="fs-bubble typing">...</div>
+        <div class="fs-bubble typing">
+             <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
     </div>
 </div>
                                 
@@ -454,6 +468,7 @@
           try {
             switch (this.currentFlow) {
               case "awaiting_email":
+                // Logic lama jika masih ada (fallback)
                 await this.callProgressApi(msgText);
                 break;
               case "awaiting_question":
@@ -466,12 +481,18 @@
               case "main_menu":
               default:
                 if (msgLower.includes("cek progres")) {
+                  // --- PERUBAHAN DI SINI: Email Hardcoded ---
+                  // Masukkan email yang ingin Anda gunakan secara otomatis
+                  const myEmail = "rafy@gmail.com"; 
+
                   this.messages.push({
                     sender: "server",
-                    text: "Tentu, silakan masukkan email Anda:",
+                    text: `Baik, saya akan mengecek progres belajar untuk email: ${myEmail}...`,
                   });
-                  this.currentFlow = "awaiting_email";
-                  this.inputPlaceholder = "Ketik email Anda...";
+                  
+                  // Langsung panggil API tanpa meminta input user lagi
+                  await this.callProgressApi(myEmail);
+                  
                 } else if (msgLower.includes("rekomendasi kuis")) {
                   await this.startQuizFlow();
                 } else if (
