@@ -5,6 +5,8 @@ from typing import Optional, Literal, List
 class AskRequest(BaseModel):
     question: str
     preset: Literal["to the point", "teman", "instruktor", "rekan"] = "to the point"
+    full_page_content: Optional[str] = None 
+    visible_text: Optional[str] = None
 
 class AskResponse(BaseModel):
     bot_response: str

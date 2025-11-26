@@ -460,6 +460,47 @@
           this.handleMessage(msgText);
         },
 
+        // --- BARU: Fungsi untuk Mengambil Konteks Halaman ---
+        getPageContext() {
+            const appElement = document.getElementById('learning-buddy-app');
+            
+            // 1. Full Content (Exclude Widget)
+            let fullContent = "";
+            // Loop direct children of body untuk menghindari widget
+            Array.from(document.body.children).forEach(child => {
+                if (child !== appElement && !child.contains(appElement)) {
+                    fullContent += (child.innerText || "") + "\n";
+                }
+            });
+
+            // 2. Visible Viewport (Exclude Widget)
+            let visibleTexts = [];
+            // Targetkan elemen teks spesifik untuk mengurangi noise
+            const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th, span, div'); 
+            
+            elements.forEach(el => {
+                // Skip jika elemen adalah bagian dari widget
+                if (appElement && (appElement === el || appElement.contains(el))) return;
+
+                const rect = el.getBoundingClientRect();
+                // Logic: Jika elemen ada di dalam area viewport (dengan sedikit toleransi 50px)
+                if (rect.top >= -50 && rect.bottom <= (window.innerHeight + 50)) {
+                   // Cek apakah elemen punya teks yang cukup panjang & valid
+                   if (el.innerText && el.innerText.trim().length > 5 && el.offsetParent !== null) {
+                       visibleTexts.push(el.innerText.trim());
+                   }
+                }
+            });
+            
+            // Hapus duplikat sederhana
+            visibleTexts = [...new Set(visibleTexts)];
+            
+            return {
+                full: fullContent.trim(),
+                visible: visibleTexts.join("\n")
+            };
+        },
+
         async handleMessage(msgText) {
           this.isLoading = true;
           this.removeLastOptions();
@@ -558,15 +599,21 @@
           }
         },
 
-        // FITUR 2: Tanya Soal (Updated dengan chatMode)
+        // FITUR 2: Tanya Soal (Updated dengan On-Page RAG)
         async callAskApi(question) {
           try {
+            // 1. TRIGGER: Ambil Konteks Halaman secara otomatis di sini
+            const pageCtx = this.getPageContext();
+            
+            // 2. Kirim ke Backend
             const response = await fetch(`${API_BASE_URL}/api/v1/ask`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 question: question,
-                preset: this.chatMode, // <-- GUNAKAN NILAI DARI DROPDOWN
+                preset: this.chatMode,
+                full_page_content: pageCtx.full,  // <-- Kirim full modul
+                visible_text: pageCtx.visible     // <-- Kirim fokus user
               }),
             });
             if (!response.ok) throw new Error("API /ask gagal");
@@ -746,6 +793,7 @@
             this.closeChat();
           } finally {
             this.isLoading = false;
+            this.scrollToBottom();
           }
         },
 
