@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Dict
 
 # --- Model untuk /ask ---
 class AskRequest(BaseModel):
@@ -7,6 +7,7 @@ class AskRequest(BaseModel):
     preset: Literal["to the point", "teman", "instruktor", "rekan"] = "to the point"
     full_page_content: Optional[str] = None 
     visible_text: Optional[str] = None
+    history: Optional[List[Dict[str, str]]] = None 
 
 class AskResponse(BaseModel):
     bot_response: str

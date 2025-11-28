@@ -1,6 +1,6 @@
 (function () {
   // 1. Konfigurasi
-  const API_BASE_URL = "https://learning-budy-chatbot.vercel.app"; 
+  const API_BASE_URL = "http://localhost:8000"; // Ganti dengan URL backend Anda
   const WIDGET_CSS_URL = API_BASE_URL + "/widget/style/widget.css";
   const VUE_CDN_URL = "https://unpkg.com/vue@3/dist/vue.global.js";
 
@@ -54,7 +54,7 @@
                                 <span>Learning Buddy</span>
                                 <div>
                                     <button class="chat-header-fullscreen" v-if="windowState === 'popup'" @click="goFullscreen">
-                                        <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                                        <svg fill="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
                                     </button>
                                     <button class="chat-header-close" @click="closeChat">&times;</button>
                                 </div>
@@ -73,13 +73,41 @@
                             </div>
                             
                             <div class="chat-footer">
-                                <select v-model="chatMode" class="mode-select" :disabled="isLoading">
-                                    <option value="to the point">To the Point</option>
-                                    <option value="teman">Teman</option>
-                                    <option value="instruktor">Instruktur</option>
-                                    <option value="rekan">Rekan Kerja</option>
-                                </select>
-                                <input type="text" class="chat-input" :placeholder="inputPlaceholder" v-model="newMessage" @keydown.enter="sendMessage" :disabled="isLoading">
+                                <!-- CUSTOM MODEL SELECTOR (Popup) -->
+                                <div class="model-selector" v-click-outside="closeSelector">
+                                    <button class="model-selector-btn" @click="toggleSelector" :disabled="isLoading">
+                                        <span>{{ getModeLabel(chatMode) }}</span>
+                                        <svg class="model-selector-arrow" :class="{ 'open': isSelectorOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                    </button>
+                                    
+                                    <div class="model-menu" v-if="isSelectorOpen">
+                                        <div v-for="mode in chatModes" 
+                                             :key="mode.id" 
+                                             class="model-item" 
+                                             :class="{ 'active': chatMode === mode.id }"
+                                             @click="selectMode(mode.id)">
+                                            <div class="model-item-icon" v-html="mode.icon"></div>
+                                            <div class="model-item-text">
+                                                <span class="model-item-title">{{ mode.label }}</span>
+                                                <span class="model-item-desc">{{ mode.desc }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- TEXTAREA MULTILINE INPUT -->
+                                <textarea 
+                                    rows="1"
+                                    class="chat-input" 
+                                    :placeholder="inputPlaceholder" 
+                                    v-model="newMessage" 
+                                    @input="autoResize"
+                                    @keydown.enter.exact.prevent="sendMessage"
+                                    @keydown.enter.shift.exact="newline"
+                                    :disabled="isLoading"
+                                    ref="chatInput">
+                                </textarea>
+                                
                                 <button class="send-button" @click="sendMessage" :disabled="isLoading">
                                     <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                                 </button>
@@ -147,13 +175,40 @@
                                     </div>
                                 </div>
                                 <div class="fs-footer">
-                                    <select v-model="chatMode" class="mode-select fs-mode" :disabled="isLoading || showQuizPanel">
-                                        <option value="to the point">To the Point</option>
-                                        <option value="teman">Teman</option>
-                                        <option value="instruktor">Instruktur</option>
-                                        <option value="rekan">Rekan Kerja</option>
-                                    </select>
-                                    <input type="text" class="fs-input" :placeholder="inputPlaceholder" v-model="newMessage" @keydown.enter="sendMessage" :disabled="isLoading || showQuizPanel">
+                                    <!-- CUSTOM MODEL SELECTOR (Fullscreen) -->
+                                    <div class="model-selector" v-click-outside="closeSelector">
+                                        <button class="model-selector-btn" @click="toggleSelector" :disabled="isLoading || showQuizPanel">
+                                            <span>{{ getModeLabel(chatMode) }}</span>
+                                            <svg class="model-selector-arrow" :class="{ 'open': isSelectorOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                        </button>
+                                        
+                                        <div class="model-menu" v-if="isSelectorOpen">
+                                            <div v-for="mode in chatModes" 
+                                                 :key="mode.id" 
+                                                 class="model-item" 
+                                                 :class="{ 'active': chatMode === mode.id }"
+                                                 @click="selectMode(mode.id)">
+                                                <div class="model-item-icon" v-html="mode.icon"></div>
+                                                <div class="model-item-text">
+                                                    <span class="model-item-title">{{ mode.label }}</span>
+                                                    <span class="model-item-desc">{{ mode.desc }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <textarea 
+                                        rows="1"
+                                        class="fs-input" 
+                                        :placeholder="inputPlaceholder" 
+                                        v-model="newMessage" 
+                                        @input="autoResize"
+                                        @keydown.enter.exact.prevent="sendMessage"
+                                        @keydown.enter.shift.exact="newline"
+                                        :disabled="isLoading || showQuizPanel"
+                                        ref="chatInputFs">
+                                    </textarea>
+
                                     <button class="fs-send-button" @click="sendMessage" :disabled="isLoading || showQuizPanel">
                                         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                                     </button>
@@ -163,6 +218,21 @@
                     </div>
                 </div>
             `,
+      directives: {
+        clickOutside: {
+          mounted(el, binding) {
+            el.clickOutsideEvent = function(event) {
+              if (!(el === event.target || el.contains(event.target))) {
+                binding.value(event);
+              }
+            };
+            document.body.addEventListener('click', el.clickOutsideEvent);
+          },
+          unmounted(el) {
+            document.body.removeEventListener('click', el.clickOutsideEvent);
+          },
+        },
+      },
       data() {
         return {
           windowState: "closed",
@@ -173,6 +243,33 @@
           inputPlaceholder: "Ketik atau pilih opsi...",
           showQuizPanel: false,
           chatMode: "to the point",
+          isSelectorOpen: false, // State untuk dropdown
+          chatModes: [
+            { 
+              id: "to the point", 
+              label: "To the Point", 
+              desc: "Jawaban ringkas, langsung ke inti permasalahan.",
+              icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>` 
+            },
+            { 
+              id: "teman", 
+              label: "Teman Belajar", 
+              desc: "Gaya santai, menggunakan analogi mudah dipahami.",
+              icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` 
+            },
+            { 
+              id: "instruktor", 
+              label: "Instruktur", 
+              desc: "Teknis, terstruktur, profesional dan mendalam.",
+              icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>` 
+            },
+            { 
+              id: "rekan", 
+              label: "Rekan Kerja", 
+              desc: "Kolaboratif, suportif, dan solutif.",
+              icon: `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>` 
+            }
+          ],
           quizContext: { interest: null, questions: [], currentQuestionIndex: 0, userAnswers: {} },
           isAssessmentMode: false,
           assessmentContext: { questions: [], currentQuestionIndex: 0, answers: [] },
@@ -195,22 +292,56 @@
         },
       },
       methods: {
+        toggleSelector() {
+            this.isSelectorOpen = !this.isSelectorOpen;
+        },
+        closeSelector() {
+            this.isSelectorOpen = false;
+        },
+        selectMode(modeId) {
+            this.chatMode = modeId;
+            this.isSelectorOpen = false;
+        },
+        getModeLabel(modeId) {
+            const mode = this.chatModes.find(m => m.id === modeId);
+            return mode ? mode.label : modeId;
+        },
         scrollToBottom() {
           this.$nextTick(() => {
             const body = this.$refs.chatBody || this.$refs.chatBodyFs;
             if (body) body.scrollTop = body.scrollHeight;
           });
         },
+        
+        // --- NEW FUNCTION: AUTO RESIZE TEXTAREA ---
+        autoResize(event) {
+            const el = event.target;
+            el.style.height = 'auto'; // Reset dulu
+            el.style.height = el.scrollHeight + 'px'; // Set sesuai konten
+        },
+        newline() {
+            // Biarkan default behavior (baris baru) terjadi
+        },
+
+        // --- UPDATED FUNCTION: FORMAT MESSAGE WITH CODE BLOCKS ---
         formatMessage(text) {
           let formatted = String(text);
+          
+          // 1. Handle Code Blocks (``` ... ```)
+          // Menggunakan regex non-greedy ([\s\S]*?) untuk menangkap konten multi-line di dalam backticks
+          formatted = formatted.replace(/```(\w*)([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
+          
+          // 2. Handle Markdown lainnya
           formatted = formatted.replace(/^### (.*$)/gim, '<h3 style="margin: 12px 0 6px 0; font-size: 15px; font-weight: 700;">$1</h3>');
           formatted = formatted.replace(/^## (.*$)/gim, '<h2 style="margin: 14px 0 8px 0; font-size: 16px; font-weight: 700;">$1</h2>');
           formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
           formatted = formatted.replace(/^\s*[\-\*]\s+(.*)$/gm, '<div style="display: flex; align-items: flex-start; margin-left: 8px; margin-bottom: 4px;"><span style="margin-right:6px;">•</span><span>$1</span></div>');
           formatted = formatted.replace(/(?<!\w)\*([^\*\n]+)\*(?!\w)/g, "<em>$1</em>");
           formatted = formatted.replace(/\n/g, "<br>");
+          
           return formatted;
         },
+        
         removeLastOptions() {
           for (let i = this.messages.length - 1; i >= 0; i--) {
             if (this.messages[i].sender === "server") {
@@ -249,11 +380,19 @@
           this.removeLastOptions();
           this.handleMessage(text);
         },
+        
         sendMessage() {
           const msgText = this.newMessage.trim();
           if (msgText === "" || this.isLoading) return;
           this.messages.push({ sender: "klien", text: msgText });
           this.newMessage = "";
+          
+          // Reset height textarea setelah kirim
+          this.$nextTick(() => {
+              if (this.$refs.chatInput) this.$refs.chatInput.style.height = 'auto';
+              if (this.$refs.chatInputFs) this.$refs.chatInputFs.style.height = 'auto';
+          });
+
           this.scrollToBottom();
           this.handleMessage(msgText);
         },
@@ -276,6 +415,20 @@
             });
             visibleTexts = [...new Set(visibleTexts)];
             return { full: fullContent.trim(), visible: visibleTexts.join("\n") };
+        },
+
+        // --- NEW: FUNGSI GET HISTORY ---
+        getHistory() {
+             // Ambil semua pesan KECUALI yang terakhir (karena itu pertanyaan saat ini yang baru di-push)
+            const previousMessages = this.messages.slice(0, -1);
+            
+            // Ambil 6 pesan terakhir dari previousMessages untuk hemat token
+            const limitedHistory = previousMessages.slice(-6);
+
+            return limitedHistory.map(msg => ({
+                role: msg.sender === 'klien' ? 'user' : 'model',
+                content: msg.text
+            }));
         },
 
         async handleMessage(msgText) {
@@ -349,7 +502,7 @@
           }
         },
 
-        // FITUR 2: Tanya Soal (FIXED LOGIC)
+        // FITUR 2: Tanya Soal (UPDATED WITH HISTORY)
         async callAskApi(question) {
           try {
             let pageCtx = { full: null, visible: null };
@@ -360,6 +513,9 @@
             } else {
                  console.log("[DEBUG] Mode 'Chat Biasa': Konteks halaman NULL (Skip)");
             }
+
+            // NEW: Get History
+            const history = this.getHistory();
             
             const response = await fetch(`${API_BASE_URL}/api/v1/ask`, {
               method: "POST",
@@ -368,7 +524,8 @@
                 question: question,
                 preset: this.chatMode,
                 full_page_content: pageCtx.full,  
-                visible_text: pageCtx.visible     
+                visible_text: pageCtx.visible,
+                history: history // Kirim History
               }),
             });
             if (!response.ok) throw new Error("API /ask gagal");

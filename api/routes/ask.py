@@ -8,12 +8,10 @@ router = APIRouter()
 @router.post("/ask", response_model=AskResponse)
 async def handle_ask(request: AskRequest):
  
-    
     konteks_str = ""
     sumber_konteks = ""
 
     # --- SKENARIO A: ON-PAGE CONTEXT (Prioritas) ---
-    # Jika frontend mengirim konten halaman, gunakan itu.
     if request.full_page_content:
         sumber_konteks = "Halaman Web yang Sedang Dibuka User"
         konteks_str = f"""
@@ -34,7 +32,6 @@ async def handle_ask(request: AskRequest):
              konteks_str += "\n(User sedang melihat halaman ini secara umum)"
 
     # --- SKENARIO B: DATABASE RAG (Fallback) ---
-    # Jika tidak ada konteks halaman, cari di database tutorial
     else:
         sumber_konteks = "Database Tutorial (Pencarian Keyword)"
         search_query = request.question.replace(" ", "%") 
@@ -57,7 +54,19 @@ async def handle_ask(request: AskRequest):
 
     print(f"[DEBUG] Sumber Konteks: {sumber_konteks}")
 
-    # ---  AUGMENTATION (Nada Bicara)  ---
+    # --- FORMAT RIWAYAT CHAT (HISTORY) ---
+    history_str = ""
+    if request.history:
+        history_str = "\n\nRIWAYAT PERCAKAPAN SEBELUMNYA (Gunakan untuk konteks 'ini', 'itu', 'dia', dll):\n"
+        for msg in request.history:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            content = msg.get("content", "")
+            # Skip pesan kosong
+            if content:
+                history_str += f"{role}: {content}\n"
+        history_str += "[AKHIR RIWAYAT]\n"
+
+    # --- AUGMENTATION (Nada Bicara) ---
     prompt_nada = ""
     if request.preset == "teman":
         prompt_nada = (
@@ -85,11 +94,13 @@ async def handle_ask(request: AskRequest):
     Anda adalah Asisten Pengajar yang cerdas.
     
     {konteks_str}
+
+    {history_str}
     
     Tugas Anda:
     Jawab pertanyaan user di bawah ini.
     Jika ada "KONTEKS HALAMAN", utamakan jawaban berdasarkan teks tersebut.
-    Jika ada "BAGIAN YANG SEDANG DIBACA", berikan perhatian khusus pada bagian itu karena user sedang bingung di sana.
+    Jika ada "RIWAYAT PERCAKAPAN", gunakan itu untuk memahami referensi kata ganti (seperti "itu", "nya", "sebelumnya") atau perbandingan dengan topik sebelumnya.
     
     Pertanyaan User: "{request.question}"
     

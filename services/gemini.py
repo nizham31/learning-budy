@@ -19,6 +19,7 @@ async def call_gemini_api(prompt: str) -> str:
                  'HARM_CATEGORY_HARASSMENT': 'BLOCK_NONE',
                  'HARM_CATEGORY_SEXUALLY_EXPLICIT': 'BLOCK_NONE',
                  'HARM_CATEGORY_DANGEROUS_CONTENT': 'BLOCK_NONE',
+                 
              }
         )
         return response.text
