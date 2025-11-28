@@ -1,6 +1,6 @@
 (function () {
   // 1. Konfigurasi
-  const API_BASE_URL = "http://localhost:8000"; // Ganti dengan URL backend Anda
+  const API_BASE_URL = "https://learning-budy-chatbot.vercel.app"; // Ganti dengan URL backend Anda
   const WIDGET_CSS_URL = API_BASE_URL + "/widget/style/widget.css";
   const VUE_CDN_URL = "https://unpkg.com/vue@3/dist/vue.global.js";
 
