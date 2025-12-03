@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course: Dasar Pemrograman Python | Learning Buddy</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      /* Modal Transition */
+      .fade-enter-active, .fade-leave-active {
+        transition: opacity 0.3s;
+      }
+      .fade-enter-from, .fade-leave-to {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
+    
+    <!-- Aplikasi Vue Utama untuk Navbar & Konten -->
+    <div id="main-app" class="flex flex-col min-h-screen">
+        
+        <!-- NAVBAR -->
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <!-- Kiri: Logo -->
+                    <div class="flex items-center gap-2">
+                        <div class="bg-blue-600 text-white p-1.5 rounded-lg font-bold text-xl shadow-sm">LB</div>
+                        <span class="font-bold text-gray-900 text-lg tracking-tight hidden sm:block">Learning Buddy</span>
+                    </div>
+
+                    <!-- Kanan: Auth Menu -->
+                    <div class="flex items-center gap-4">
+                        <template v-if="isLoggedIn">
+                             <div class="hidden md:flex flex-col items-end text-sm mr-2">
+                                <span class="text-gray-500 text-xs">Login sebagai</span>
+                                <span class="font-semibold text-blue-600">{{ userEmail }}</span>
+                             </div>
+                             <button @click="logout" 
+                                class="bg-white hover:bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-full text-sm font-medium transition duration-200 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                Keluar
+                             </button>
+                        </template>
+                        <template v-else>
+                            <button @click="openModal('login')" 
+                                class="text-gray-600 hover:text-blue-600 font-medium text-sm transition px-3 py-2">
+                                Masuk
+                            </button>
+                            <button @click="openModal('register')" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full text-sm font-medium transition shadow-sm hover:shadow-md">
+                                Daftar
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Main Content -->
+                <main class="flex-1 min-w-0">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    
+                    <!-- Hero / Header Image -->
+                    <div class="h-32 bg-gradient-to-r from-blue-600 to-indigo-700 relative">
+                        <div class="absolute -bottom-6 left-6 sm:left-10">
+                            <div class="bg-white p-2 rounded-lg shadow-md inline-block">
+                                <div class="w-12 h-12 bg-yellow-100 rounded flex items-center justify-center text-2xl">🐍</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-6 sm:px-10 pt-10 pb-10">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Beginner
+                            </span>
+                            <span class="text-sm text-gray-500 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                5 menit baca
+                            </span>
+                            <span class="text-sm text-gray-500 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                1.2k views
+                            </span>
+                        </div>
+
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+                            Pengenalan Bahasa Pemrograman Python
+                        </h1>
+
+                        <div class="prose prose-blue max-w-none text-gray-700 leading-relaxed space-y-6">
+                            <p class="text-lg">
+                                Python adalah bahasa pemrograman tingkat tinggi yang dibuat oleh
+                                <strong>Guido van Rossum</strong> dan pertama kali dirilis pada
+                                tahun 1991. Python dirancang dengan filosofi desain yang
+                                menekankan pada keterbacaan kode, yang mana konstruksi bahasanya
+                                dan pendekatan berorientasi objek bertujuan untuk membantu
+                                programmer menulis kode yang jelas dan logis untuk proyek skala
+                                kecil maupun besar.
+                            </p>
+
+                            <h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4 flex items-center gap-2">
+                                <span class="text-blue-600">#</span> Mengapa Memilih Python?
+                            </h2>
+                            <p>
+                                Ada beberapa alasan mengapa Python menjadi salah satu bahasa
+                                pemrograman paling populer di dunia saat ini:
+                            </p>
+                            <div class="grid sm:grid-cols-2 gap-4 my-6">
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Mudah Dipelajari
+                                    </h4>
+                                    <p class="text-sm">Sintaks Python sangat mirip dengan bahasa Inggris manusia, membuatnya sangat ramah bagi pemula.</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                                    Serbaguna (Versatile)
+                                    </h4>
+                                    <p class="text-sm">Web Dev (Django, Flask), Data Science, AI (TensorFlow), hingga otomatisasi.</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                    Komunitas Besar
+                                    </h4>
+                                    <p class="text-sm">Dukungan komunitas masif, mudah menemukan solusi jika mengalami error.</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                    <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Open Source
+                                    </h4>
+                                    <p class="text-sm">Gratis untuk digunakan dan didistribusikan, bahkan untuk tujuan komersial.</p>
+                                </div>
+                            </div>
+
+                            <h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4 flex items-center gap-2">
+                                <span class="text-blue-600">#</span> Filosofi "Zen of Python"
+                            </h2>
+                            <p>
+                                Python memiliki prinsip desain yang unik yang dikenal sebagai
+                                <em>Zen of Python</em>. Beberapa poin utamanya adalah:
+                            </p>
+                            <blockquote class="border-l-4 border-blue-500 pl-6 py-4 italic bg-blue-50 rounded-r-lg text-gray-700 my-6">
+                                "Beautiful is better than ugly.<br />
+                                Explicit is better than implicit.<br />
+                                Simple is better than complex.<br />
+                                Readability counts."
+                            </blockquote>
+
+                            <h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4 flex items-center gap-2">
+                                <span class="text-blue-600">#</span> Contoh Kode Sederhana
+                            </h2>
+                            <p>
+                                Bandingkan kode Java dengan Python untuk mencetak "Hello World".
+                                Di Python, Anda hanya membutuhkan satu baris kode:
+                            </p>
+
+                            <div class="bg-[#1e293b] text-gray-100 rounded-xl p-6 font-mono text-sm overflow-x-auto shadow-lg my-6 border border-gray-700 relative group">
+                                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-gray-300">Copy</button>
+                                </div>
+                                <pre><code><span class="text-gray-500"># Ini adalah komentar di Python</span>
+<span class="text-purple-400">print</span>(<span class="text-green-400">"Hello, World!"</span>)
+
+<span class="text-gray-500"># Contoh variabel</span>
+<span class="text-blue-400">nama</span> = <span class="text-green-400">"Budi"</span>
+<span class="text-blue-400">umur</span> = <span class="text-orange-400">20</span>
+
+<span class="text-purple-400">if</span> umur >= <span class="text-orange-400">17</span>:
+    <span class="text-purple-400">print</span>(f<span class="text-green-400">"{nama} sudah boleh membuat KTP"</span>)
+<span class="text-purple-400">else</span>:
+    <span class="text-purple-400">print</span>(f<span class="text-green-400">"{nama} belum cukup umur"</span>)</code></pre>
+                            </div>
+
+                            <p>
+                                Sangat sederhana, bukan? Tidak perlu mendefinisikan class atau
+                                method `main` yang rumit hanya untuk program dasar.
+                            </p>
+                            
+                        </div>             
+                    </div>
+                </div>
+                
+                <footer class="mt-12 text-center text-gray-500 text-sm pb-8">
+                    <div class="flex justify-center space-x-6 mb-4">
+                        <a href="#" class="hover:text-gray-700">Tentang Kami</a>
+                        <a href="#" class="hover:text-gray-700">Kebijakan Privasi</a>
+                        <a href="#" class="hover:text-gray-700">Bantuan</a>
+                    </div>
+                    &copy; 2024 Learning Buddy Demo Platform. All rights reserved.
+                </footer>
+                </main>
+            </div>
+        </div>
+
+        <!-- AUTH MODAL (Login / Register) -->
+        <transition name="fade">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none bg-gray-900 bg-opacity-50 backdrop-blur-sm">
+                <div class="relative w-full max-w-md mx-auto my-6">
+                    <!-- Modal Content -->
+                    <div class="relative flex flex-col w-full bg-white border-0 rounded-2xl shadow-2xl outline-none focus:outline-none">
+                        
+                        <!-- Header -->
+                        <div class="flex items-start justify-between p-6 border-b border-solid border-gray-200 rounded-t-2xl">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                {{ activeTab === 'login' ? 'Masuk Akun' : 'Daftar Baru' }}
+                            </h3>
+                            <button class="p-1 ml-auto border-0 text-gray-500 hover:text-black float-right text-3xl leading-none font-semibold outline-none focus:outline-none" @click="closeModal">
+                                <span class="block w-6 h-6 text-2xl opacity-50">×</span>
+                            </button>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="relative p-6 flex-auto">
+                            <!-- ERROR MESSAGE -->
+                             <div v-if="errorMessage" class="mb-4 bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                                <span class="block sm:inline">{{ errorMessage }}</span>
+                             </div>
+
+                             <!-- FORM LOGIN -->
+                             <form v-if="activeTab === 'login'" @submit.prevent="handleLogin">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                                    <input v-model="form.email" type="email" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="contoh@email.com" required>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                                    <input v-model="form.password" type="password" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="********" required>
+                                </div>
+                                <button type="submit" :disabled="isLoading" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                                    {{ isLoading ? 'Memproses...' : 'Masuk Sekarang' }}
+                                </button>
+                                <p class="mt-4 text-center text-sm text-gray-600">
+                                    Belum punya akun? <a href="#" @click.prevent="switchTab('register')" class="text-blue-600 font-bold hover:underline">Daftar sekarang</a>
+                                </p>
+                             </form>
+
+                             <!-- FORM REGISTER -->
+                             <form v-else @submit.prevent="handleRegister">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap</label>
+                                    <input v-model="form.fullName" type="text" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Nama Anda" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                                    <input v-model="form.email" type="email" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="contoh@email.com" required>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                                    <input v-model="form.password" type="password" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Buat password aman" required>
+                                </div>
+                                <button type="submit" :disabled="isLoading" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-200 ease-in-out transform hover:-translate-y-0.5">
+                                    {{ isLoading ? 'Mendaftarkan...' : 'Daftar Akun Baru' }}
+                                </button>
+                                <p class="mt-4 text-center text-sm text-gray-600">
+                                    Sudah punya akun? <a href="#" @click.prevent="switchTab('login')" class="text-blue-600 font-bold hover:underline">Login di sini</a>
+                                </p>
+                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+    </div><!-- End of Vue App -->
+
+    <!-- Script Widget Chatbot -->
+    <script src="http://localhost:8000/widget/js/widget.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isLoggedIn: false,
+                    userEmail: '',
+                    showModal: false,
+                    activeTab: 'login', // 'login' or 'register'
+                    isLoading: false,
+                    errorMessage: '',
+                    form: {
+                        email: '',
+                        password: '',
+                        fullName: ''
+                    }
+                }
+            },
+            mounted() {
+                // Cek status login saat halaman dimuat
+                const token = localStorage.getItem('access_token');
+                const email = localStorage.getItem('user_email');
+                if (token && email) {
+                    this.isLoggedIn = true;
+                    this.userEmail = email;
+                }
+            },
+            methods: {
+                openModal(tab) {
+                    this.activeTab = tab;
+                    this.errorMessage = '';
+                    this.form = { email: '', password: '', fullName: '' };
+                    this.showModal = true;
+                },
+                closeModal() {
+                    this.showModal = false;
+                },
+                switchTab(tab) {
+                    this.errorMessage = '';
+                    this.activeTab = tab;
+                },
+                async handleLogin() {
+                    this.isLoading = true;
+                    this.errorMessage = '';
+                    
+                    try {
+                        const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: this.form.email,
+                                password: this.form.password
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || 'Login gagal');
+                        }
+
+                        // Simpan sesi
+                        localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('user_email', this.form.email);
+                        
+                        this.isLoggedIn = true;
+                        this.userEmail = this.form.email;
+                        this.closeModal();
+                        
+                        // Reload halaman agar widget juga ter-update dengan token baru
+                        window.location.reload();
+
+                    } catch (error) {
+                        this.errorMessage = error.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                async handleRegister() {
+                    this.isLoading = true;
+                    this.errorMessage = '';
+
+                    try {
+                        const response = await fetch('http://localhost:8000/api/v1/auth/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: this.form.email,
+                                password: this.form.password,
+                                full_name: this.form.fullName
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || 'Registrasi gagal');
+                        }
+
+                        // Setelah register sukses, langsung login otomatis atau minta login
+                        this.errorMessage = '';
+                        alert('Registrasi berhasil! Silakan login.');
+                        this.switchTab('login');
+
+                    } catch (error) {
+                        this.errorMessage = error.message;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                logout() {
+                    if (confirm('Apakah Anda yakin ingin keluar?')) {
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('user_email');
+                        this.isLoggedIn = false;
+                        this.userEmail = '';
+                        window.location.reload();
+                    }
+                }
+            }
+        }).mount('#main-app');
+    </script>
+  </body>
+</html>

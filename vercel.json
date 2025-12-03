@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/widget/(.*)",
+      "destination": "/template/$1"
+    },
+    {
+      "source": "/",
+      "destination": "/template/index.html"
+    }
+  ]
+}
