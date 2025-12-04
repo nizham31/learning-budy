@@ -120,7 +120,7 @@
 
                         <!-- Mode Fullscreen -->
                         <template v-if="windowState === 'fullscreen'">
-                            <div class="fs-sidebar" :class="{ 'quiz-active': showQuizPanel }">
+                            <div class="fs-sidebar" :class="{ 'quiz-active': showQuizPanel, 'roadmap-active': showRoadmapPanel }">
                                 <div v-show="showQuizPanel" class="fs-quiz-container">
                                     <div class="fs-quiz-header">
                                         <h4>{{ isAssessmentMode ? 'Tes Minat' : 'Kuis Teknis' }}</h4>
@@ -154,6 +154,57 @@
                                             <button v-if="isAssessmentMode" class="fs-quiz-submit" @click="submitAssessment" :disabled="!allQuestionsAnswered || isLoading">{{ isLoading ? 'Loading...' : 'Cek Hasil Minat' }}</button>
                                             <button v-else class="fs-quiz-submit" @click="submitFullQuiz" :disabled="!allQuestionsAnswered || isLoading">{{ isLoading ? 'Loading...' : 'Kirim Jawaban' }}</button>
                                         </template>
+                                    </div>
+                                </div>
+                                <!-- PANEL ROADMAP (BARU) -->
+                                <div v-show="showRoadmapPanel && activeRoadmapCourse" class="roadmap-container">
+                                    <div class="roadmap-header">
+                                        <div class="roadmap-course-title">{{ activeRoadmapCourse.kursus }}</div>
+                                        <div class="roadmap-stats">
+                                            <span>{{ activeRoadmapCourse.progres_persen }}% Selesai</span>
+                                            <span>•</span>
+                                            <span>{{ activeRoadmapCourse.selesai_modul }} / {{ activeRoadmapCourse.total_modul }} Modul</span>
+                                        </div>
+                                        <div class="roadmap-progress-bg">
+                                            <div class="roadmap-progress-fill" :style="{ width: activeRoadmapCourse.progres_persen + '%' }"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline">
+                                        <!-- Node Masa Lalu (Mulai) -->
+                                        <div class="timeline-item past">
+                                            <div class="timeline-dot"></div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">Mulai Belajar</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Node Sekarang (Sedang Dipelajari) -->
+                                        <div class="timeline-item active">
+                                            <div class="timeline-dot"></div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">Saat Ini</div>
+                                                <div class="timeline-desc">{{ activeRoadmapCourse.sedang_dipelajari }}</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Node Masa Depan (Akan Datang) -->
+                                        <div v-for="(topic, idx) in activeRoadmapCourse.akan_datang" :key="idx" class="timeline-item future">
+                                            <div class="timeline-dot"></div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">Next Step {{ idx + 1 }}</div>
+                                                <div class="timeline-desc">{{ topic }}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Node Akhir -->
+                                        <div class="timeline-item future">
+                                            <div class="timeline-dot"></div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">Final Submission / Ujian</div>
+                                                <div class="timeline-desc">Goal Akhir</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -248,6 +299,8 @@
           currentFlow: "main_menu",
           inputPlaceholder: "Ketik atau pilih opsi...",
           showQuizPanel: false,
+          showRoadmapPanel: false,        // NEW: toggle panel roadmap
+          activeRoadmapCourse: null,      // NEW: data course aktif untuk roadmap
           chatMode: "to the point",
           isSelectorOpen: false, 
           chatModes: [
@@ -545,6 +598,19 @@
               throw new Error(data.detail || data.bot_response || `Gagal mengecek progres`);
             }
             this.messages.push({ sender: "server", text: data.bot_response });
+            if (data.progress_data && data.progress_data.length > 0) {
+              const active = data.progress_data.find(c => c.status === "BELUM LULUS") || data.progress_data[0];
+              this.activeRoadmapCourse = active;
+
+              // Aktifkan panel roadmap, matikan panel kuis
+              this.showQuizPanel = false;
+              this.showRoadmapPanel = true;
+
+              // Pastikan tampilan fullscreen supaya sidebar terlihat
+              this.goFullscreen();
+            } else {
+              this.showRoadmapPanel = false;
+            }
           } catch (error) {
             console.error("Error di callProgressApi:", error);
             this.messages.push({ sender: "server", text: `Maaf: ${error.message}` });

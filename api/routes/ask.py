@@ -63,7 +63,7 @@ async def handle_ask(request: AskRequest):
                 history_str += f"{role}: {content}\n"
         history_str += "[AKHIR RIWAYAT]\n"
 
-    # --- AUGMENTATION (Nada Bicara) ---
+    # --- AUGMENTATION  ---
     prompt_nada = ""
     if request.preset == "teman":
         prompt_nada = (

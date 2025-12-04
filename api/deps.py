@@ -19,7 +19,7 @@ async def get_current_user_email(token: str = Depends(oauth2_scheme)) -> str:
     try:
         # Dekode token menggunakan kunci rahasia
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub") # 'sub' biasanya berisi identitas utama (email)
+        email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
         return email

@@ -7,8 +7,6 @@ from schemas.chat import AssessmentQuestion, AssessmentSubmitRequest, Assessment
 
 router = APIRouter(prefix="/assessment", tags=["Asesmen Minat"])
 
-
-
 @router.get("/questions", response_model=List[AssessmentQuestion])
 async def get_assessment_questions():
     """
