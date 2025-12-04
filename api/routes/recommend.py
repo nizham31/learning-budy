@@ -160,15 +160,15 @@ async def handle_submission(request: SubmitRequest):
     level_rekomendasi_id = 1 # Default Dasar
     level_str = "Dasar"
     
-    # Threshold disesuaikan karena advanced nilainya gede
-    if persentase >= 0.75: # > 75% dari total poin bobot
-        level_rekomendasi_id = 4 # Mahir
+    
+    if persentase >= 0.75: # > 
+        level_rekomendasi_id = 4
         level_str = "Mahir"
-    elif persentase >= 0.45: # > 45%
-        level_rekomendasi_id = 3 # Menengah
+    elif persentase >= 0.45: 
+        level_rekomendasi_id = 3
         level_str = "Menengah"
     else:
-        level_rekomendasi_id = 2 # Pemula
+        level_rekomendasi_id = 2
         level_str = "Pemula"
 
     # Cari Learning Path ID

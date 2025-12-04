@@ -10,8 +10,9 @@ router = APIRouter(prefix="/progress", tags=["Progres Siswa"])
 @router.post("/", response_model=ProgressResponse)
 async def handle_progress(current_email: str = Depends(get_current_user_email)):
     """
-    FITUR 3 (SNEAK PEEK EDITION):
-    Cek Progres + Memberikan gambaran 'Mini Roadmap' 3-5 modul ke depan.
+    FITUR 3 (SNEAK PEEK + DUAL PAYLOAD):
+    - Bot Response: Motivasi teks.
+    - Progress Data: JSON data roadmap (N+5) untuk dikonsumsi Frontend.
     """
     
     # 1. Ambil Data Progres dari DB Mock
@@ -45,9 +46,9 @@ async def handle_progress(current_email: str = Depends(get_current_user_email)):
         if total_modul > 0:
             persen = round((selesai_modul / total_modul) * 100, 1)
 
-        # --- LOGIC BARU: AMBIL 5 MODUL KE DEPAN ---
+        # --- LOGIC SNEAK PEEK (N+5) ---
         current_focus = "Menunggu Kelulusan / Ujian"
-        upcoming_topics = [] # List untuk menampung N+1 s/d N+5
+        upcoming_topics = [] 
         
         if not is_lulus and total_modul > 0 and selesai_modul < total_modul:
             try:
@@ -64,22 +65,19 @@ async def handle_progress(current_email: str = Depends(get_current_user_email)):
                 if course_search:
                     c_id = course_search[0]['course_id']
                     
-                    # B. Cari 5 Tutorial ke depan (LIMIT 5)
+                    # B. Cari 5 Tutorial ke depan
                     next_tutorials = await call_supabase_api(
                         "tutorials", db_type="dicoding",
                         params={
                             "course_id": f"eq.{c_id}",
                             "order": "tutorial_id.asc",
-                            "limit": 5,             # <--- UBAH DISINI (Ambil 5)
-                            "offset": selesai_modul # Lewati yang sudah selesai
+                            "limit": 5,             
+                            "offset": selesai_modul 
                         }
                     )
                     
                     if next_tutorials:
-                        # Modul pertama adalah yang sedang dipelajari
                         current_focus = next_tutorials[0]['tutorial_title']
-                        
-                        # Sisanya adalah masa depan (Sneak Peek)
                         if len(next_tutorials) > 1:
                             upcoming_topics = [t['tutorial_title'] for t in next_tutorials[1:]]
                     else:
@@ -94,30 +92,32 @@ async def handle_progress(current_email: str = Depends(get_current_user_email)):
         elif is_lulus:
             current_focus = "LULUS (Selesai)"
 
-        # Simpan Info Lengkap
+        # Simpan Info Lengkap (Ini yang akan dimakan Frontend)
         info = {
             "kursus": course_name,
-            "progres": f"{persen}% ({selesai_modul}/{total_modul})",
+            "progres_persen": persen, # Integer/Float biar gampang diolah FE
+            "total_modul": total_modul,
+            "selesai_modul": selesai_modul,
             "status": "LULUS" if is_lulus else "BELUM LULUS",
             "sedang_dipelajari": current_focus,
-            "akan_datang": upcoming_topics, # List ini dikirim ke AI
-            "nilai": nilai_ujian if nilai_ujian else "-"
+            "akan_datang": upcoming_topics, # List Roadmap (N+1 s/d N+5)
+            "nilai": nilai_ujian
         }
         summary_list.append(info)
         
+        # Logic untuk Prompt AI (Narasi)
         if is_lulus:
             if nilai_ujian:
                 total_score_sum += int(nilai_ujian)
                 count_exam += 1
         else:
             if persen > 0:
-                # Format string untuk AI biar dia paham urutannya
                 roadmap_str = f"Saat ini: {current_focus}. Next: {', '.join(upcoming_topics)}"
                 active_courses.append(f"{course_name} -> {roadmap_str}")
 
     avg_score = round(total_score_sum / count_exam, 1) if count_exam > 0 else 0
 
-    # 3. Susun Prompt
+    # 3. Susun Context untuk AI
     context_str = f"""
     DATA PROGRES USER:
     - Nama User: {raw_data[0].get('name', 'Siswa')}
@@ -125,7 +125,7 @@ async def handle_progress(current_email: str = Depends(get_current_user_email)):
     DETAIL COURSE & ROADMAP:
     {json.dumps(summary_list, indent=2)}
     """
-    
+
     # 4. Prompt Gemini (Instruksi Narasi)
     prompt = f"""
     Kamu adalah Learning Buddy.
@@ -147,4 +147,6 @@ async def handle_progress(current_email: str = Depends(get_current_user_email)):
     
     jawaban_ai = await call_gemini_api(prompt)
     
-    return ProgressResponse(bot_response=jawaban_ai)
+    return ProgressResponse(bot_response=jawaban_ai,   #AI chatBubble 
+                            progress_data=summary_list # UI Roadmap/Grafik
+)

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal, List, Dict
+from typing import Optional, Literal, List, Dict, Any
 
 # --- Model untuk /ask ---
 class AskRequest(BaseModel):
@@ -12,20 +12,20 @@ class AskRequest(BaseModel):
 class AskResponse(BaseModel):
     bot_response: str
 
-# --- Model untuk /progress ---
 class ProgressRequest(BaseModel):
     email: str 
 
 class ProgressResponse(BaseModel):
     bot_response: str
-
+    
+    progress_data: Optional[List[Dict[str, Any]]] = None 
 
 # Model untuk GET /interests
 class InterestResponse(BaseModel):
     id: int
     name: str
 
-# Model untuk GET /quiz (hanya soal & opsi, tanpa jawaban)
+# Model untuk GET /quiz
 class QuizQuestion(BaseModel):
     question_id: int
     question_desc: str
@@ -34,7 +34,7 @@ class QuizQuestion(BaseModel):
     option_3: str
     option_4: str
 
-# Model untuk POST /submit (jawaban dari user)
+# Model untuk POST /submit
 class QuizAnswer(BaseModel):
     question_id: int
     selected_answer: str 
@@ -43,7 +43,6 @@ class SubmitRequest(BaseModel):
     kategori_minat: str
     answers: List[QuizAnswer]
 
-# Model untuk response /submit (rekomendasi final)
 class SubmitResponse(BaseModel):
     bot_response: str
     suggested_course_name: Optional[str] = None
@@ -64,4 +63,3 @@ class AssessmentSubmitRequest(BaseModel):
 class AssessmentResponse(BaseModel):
     recommended_path: str
     description: str
-    
