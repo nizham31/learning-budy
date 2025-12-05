@@ -1,6 +1,5 @@
 ﻿/* public/widget.css */
 
-
 :root {
   /* Palet Warna: Darkest to Lightest */
   --col-darkest:    #021024;  /* Sidebar, Footer Fullscreen, Header Kuis */
@@ -12,6 +11,7 @@
   --col-bg-chat:    #F8FBFF;  /* Background area chat yang sangat muda */
 }
 
+/* ... (Style chat-button tetap sama) ... */
 .chat-button {
   position: fixed;
   bottom: 70px;
@@ -53,7 +53,6 @@
   outline-offset: 3px;
 }
 
-
 /* 3. JENDELA CHAT (POPUP MODE) */
 .chat-window {
   position: fixed;
@@ -87,24 +86,44 @@
   border-top-right-radius: 10px;
 }
 
+/* PERBAIKAN: Container tombol header agar rapi */
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Jarak antar tombol */
+}
+
+/* PERBAIKAN: Pastikan tombol punya area klik yang cukup */
 .chat-header-fullscreen,
 .chat-header-close {
   background: none;
   border: none;
   color: var(--col-white);
   cursor: pointer;
-  padding: 0 5px;
+  padding: 4px;
   line-height: 1;
-}
-.chat-header-fullscreen svg {
-  width: 18px;
-  height: 18px;
-}
-.chat-header-close {
-  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
 }
 
-/* Body Popup */
+.chat-header-fullscreen:hover,
+.chat-header-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.chat-header-fullscreen svg {
+  width: 20px;
+  height: 20px;
+}
+.chat-header-close {
+  font-size: 24px;
+  font-weight: 300;
+}
+
+/* ... (Style chat-body, chat-footer, dll tetap sama) ... */
 .chat-body {
   flex-grow: 1;
   padding: 10px;
@@ -117,18 +136,17 @@
 
 .chat-footer {
   display: flex; 
-  align-items: flex-end; /* Align bottom agar textarea tumbuh ke atas */
+  align-items: flex-end; 
   flex-shrink: 0;
   margin: 10px;               
   padding: 5px 8px;           
   background-color: var(--col-white);
   border: 2px solid var(--col-soft-blue); 
-  border-radius: 26px; /* Radius disesuaikan */      
+  border-radius: 26px; 
   box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
   position: relative; 
 }
 
-/* Input Field (Popup & Fullscreen shared basics) */
 .chat-input, .fs-input {
   flex-grow: 1; 
   background-color: transparent; 
@@ -137,9 +155,9 @@
   padding: 10px 12px; 
   font-size: 15px;
   color: var(--col-darkest);
-  resize: none; /* Disable manual resize */
+  resize: none; 
   min-height: 24px;
-  max-height: 120px; /* Batas tinggi sebelum scroll */
+  max-height: 120px;
   overflow-y: auto;
   font-family: inherit;
   line-height: 1.4;
@@ -148,7 +166,6 @@
   color: #94A3B8;
 }
 
-/* Scrollbar halus untuk textarea */
 .chat-input::-webkit-scrollbar, .fs-input::-webkit-scrollbar {
     width: 4px;
 }
@@ -156,7 +173,6 @@
     background: var(--col-soft-blue);
     border-radius: 2px;
 }
-
 
 .send-button {
   background-color: var(--col-navy);
@@ -171,16 +187,16 @@
   justify-content: center;
   transition: background-color 0.2s;
   flex-shrink: 0;
-  margin-bottom: 2px; /* Align dengan input single line */
+  margin-bottom: 2px; 
 }
 .send-button:hover {
     background-color: var(--col-medium-blue);
 }
 
-/* STYLING CODE BLOCK (PRE & CODE) */
+/* ... (Style PRE & CODE tetap sama) ... */
 pre {
-    background-color: #1e293b; /* Dark slate background */
-    color: #e2e8f0; /* Light text */
+    background-color: #1e293b; 
+    color: #e2e8f0; 
     padding: 12px;
     border-radius: 8px;
     overflow-x: auto;
@@ -188,16 +204,15 @@ pre {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 13px;
     border: 1px solid #334155;
-    white-space: pre-wrap; /* Wrap text agar tidak horizontal scroll berlebih di mobile */
+    white-space: pre-wrap; 
 }
 
 code {
     font-family: inherit;
 }
 
-/* Inline code styling (single backtick) */
 p code, li code, span code {
-    background-color: rgba(5, 38, 89, 0.1); /* Light navy tint */
+    background-color: rgba(5, 38, 89, 0.1); 
     color: var(--col-navy);
     padding: 2px 5px;
     border-radius: 4px;
@@ -205,18 +220,16 @@ p code, li code, span code {
     font-weight: 600;
 }
 
-/* Fullscreen Dark Mode Adjustment for Code */
 .chat-window.fullscreen pre {
-    background-color: #0f172a; /* Lebih gelap di fullscreen */
+    background-color: #0f172a; 
     border-color: #1e293b;
 }
-
 
 .chat-message {
   margin-bottom: 10px;
   padding: 8px 12px;
   border-radius: 18px;
-  max-width: 85%; /* Sedikit diperlebar untuk kode */
+  max-width: 85%;
   word-wrap: break-word;
   line-height: 1.4;
 }
@@ -234,7 +247,6 @@ p code, li code, span code {
   border-bottom-left-radius: 4px;
 }
 
-/* Klien bubble code adjustment (agar text putih tetap terbaca) */
 .chat-message.klien pre {
     background-color: rgba(0, 0, 0, 0.3);
     border-color: rgba(255,255,255,0.2);
@@ -246,8 +258,7 @@ p code, li code, span code {
     color: #fff;
 }
 
-
-/* --- Typing Indicator Style --- */
+/* ... (Typing Indicator) ... */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -272,13 +283,10 @@ p code, li code, span code {
 }
 
 .chat-message.server.typing {
-
   padding: 12px 16px;
 }
 
-
-
-/* 4. MODE FULLSCREEN  */
+/* 4. MODE FULLSCREEN */
 
 .chat-window.fullscreen {
     top: 0; 
@@ -291,6 +299,7 @@ p code, li code, span code {
     box-shadow: none;
     display: flex; flex-direction: row;
     background: var(--col-white);
+    z-index: 10000; /* Pastikan di atas navbar website */
 }
 
 .chat-window.fullscreen .chat-header,
@@ -299,7 +308,6 @@ p code, li code, span code {
     display: none;
 }
 
-/* Sidebar Fullscreen */
 .chat-window.fullscreen .fs-sidebar {
     width: 90px;
     height: 100%; 
@@ -312,16 +320,6 @@ p code, li code, span code {
     border-right: 1px solid var(--col-navy);
 }
 
-/* Sidebar Fullscreen: Roadmap Mode */
-.chat-window.fullscreen .fs-sidebar.roadmap-active {
-    width: 350px;
-    min-width: 320px;
-    max-width: 420px;
-    background-color: #f8fafc; /* match roadmap styling */
-    border-right: 1px solid #e2e8f0;
-}
-
-/* Area Chat Fullscreen */
 .chat-window.fullscreen .fs-chat-area {
     flex-grow: 1;
     display: flex;
@@ -335,7 +333,7 @@ p code, li code, span code {
 /* Header Fullscreen */
 .chat-window.fullscreen .fs-header {
     text-align: center;
-    padding: 20px;
+    padding: 15px 20px;
     color: var(--col-navy);
     font-weight: 600;
     border-bottom: 1px solid var(--col-pale-blue);
@@ -343,21 +341,45 @@ p code, li code, span code {
     flex-shrink: 0;
     width: 100%;
     box-sizing: border-box;
+    display: flex;
+    justify-content: space-between; /* Layout diubah untuk menampung tombol kanan */
+    align-items: center;
 }
 
-.chat-window.fullscreen .fs-close {
-    position: absolute;
-    right: 15px; top: 50%;
-    transform: translateY(-50%);
-    font-size: 28px;
+/* Container tombol di fullscreen */
+.chat-window.fullscreen .fs-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Tombol Minimize & Close di Fullscreen */
+.chat-window.fullscreen .fs-btn {
+    font-size: 24px;
     color: var(--col-medium-blue);
-    background: none; border: none;
-    cursor: pointer; padding: 5px;
+    background: none; 
+    border: none;
+    cursor: pointer; 
+    padding: 6px;
     line-height: 1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
-.chat-window.fullscreen .fs-close:hover { color: var(--col-navy); }
+.chat-window.fullscreen .fs-btn:hover { 
+    color: var(--col-navy); 
+    background-color: rgba(5, 38, 89, 0.1);
+}
 
-/* Body Fullscreen */
+/* Icon size untuk minimize */
+.fs-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* ... (Style body, message, avatar, footer fullscreen tetap sama) ... */
 .chat-window.fullscreen .fs-body {
     flex-grow: 1;
     overflow-y: auto;
@@ -368,7 +390,6 @@ p code, li code, span code {
     padding-bottom: 100px; 
 }
 
-/* Container Pesan Fullscreen */
 .chat-window.fullscreen .fs-message {
     display: flex; align-items: flex-end; gap: 12px;
     max-width: 80%; margin-bottom: 20px;
@@ -380,7 +401,6 @@ p code, li code, span code {
     align-self: flex-start; justify-content: flex-start;
 }
 
-/* Avatar Fullscreen */
 .chat-window.fullscreen .fs-avatar {
     width: 40px; height: 40px;
     border-radius: 50%;
@@ -405,7 +425,6 @@ p code, li code, span code {
 }
 .chat-window.fullscreen .fs-avatar.buddy svg { width: 24px; height: 24px; fill: currentColor; }
 
-/* Bubble Chat Fullscreen */
 .chat-window.fullscreen .fs-bubble {
     padding: 12px 16px; border-radius: 18px;
     font-size: 15px; line-height: 1.5;
@@ -449,7 +468,6 @@ p code, li code, span code {
     transform: translateX(3px);
 }
 
-
 .chat-window.fullscreen .fs-footer {
     position: absolute; 
     bottom: 30px;
@@ -463,13 +481,12 @@ p code, li code, span code {
     border-radius: 30px; 
     box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
     display: flex;
-    align-items: flex-end; /* Align bottom untuk textarea */
+    align-items: flex-end; 
     gap: 12px;
     box-sizing: border-box;
     z-index: 100;
 }
 
-/* Input Fullscreen */
 .chat-window.fullscreen .fs-input {
     flex-grow: 1;
     background-color: transparent; 
@@ -486,7 +503,6 @@ p code, li code, span code {
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* Tombol Kirim Fullscreen */
 .chat-window.fullscreen .fs-send-button {
     background: var(--col-navy); 
     border: none;
@@ -508,9 +524,7 @@ p code, li code, span code {
     background: var(--col-medium-blue);
 }
 
-
-/* 5. MODUL KUIS / SIDEBAR EXPANDED */
-
+/* ... (Style sidebar quiz, dropdown, mobile tetap sama) ... */
 .chat-window.fullscreen .fs-sidebar.quiz-active {
     width: 55%; min-width: 400px; max-width: 600px;
     background-color: var(--col-navy);
@@ -605,17 +619,12 @@ p code, li code, span code {
     cursor: not-allowed; transform: none;
 }
 
-
-/* 6. DROPDOWN MODE CHAT (CUSTOM MODEL SELECTOR) */
-
-/* Container utama untuk selector */
+/* Model Selector */
 .model-selector {
   position: relative;
   margin-right: 8px;
-  margin-bottom: 6px; /* Align dengan input textarea */
+  margin-bottom: 6px; 
 }
-
-/* Tombol Pemicu (Trigger) */
 .model-selector-btn {
   display: flex;
   align-items: center;
@@ -630,13 +639,9 @@ p code, li code, span code {
   color: var(--col-navy);
   transition: background-color 0.2s, border-color 0.2s;
 }
-
-/* Hover Effect Trigger */
 .model-selector-btn:hover {
   background-color: #f1f5f9;
 }
-
-/* Fullscreen Mode Trigger Styling (Dark Theme) */
 .chat-window.fullscreen .model-selector-btn {
   color: var(--col-pale-blue);
   background-color: rgba(255, 255, 255, 0.1);
@@ -646,8 +651,6 @@ p code, li code, span code {
 .chat-window.fullscreen .model-selector-btn:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
-
-/* Icon Panah Kecil */
 .model-selector-arrow {
   width: 14px;
   height: 14px;
@@ -656,13 +659,11 @@ p code, li code, span code {
 .model-selector-arrow.open {
   transform: rotate(180deg);
 }
-
-/* Dropdown Menu Container */
 .model-menu {
   position: absolute;
-  bottom: 120%; /* Muncul di atas tombol dengan jarak lebih */
+  bottom: 120%; 
   left: 0;
-  width: 280px; /* Lebar menu */
+  width: 280px; 
   background-color: var(--col-white);
   border: 1px solid var(--col-soft-blue);
   border-radius: 12px;
@@ -674,20 +675,15 @@ p code, li code, span code {
   gap: 4px;
   animation: fadeInMenu 0.15s ease-out;
 }
-
 @keyframes fadeInMenu {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* Fullscreen Mode Menu Styling (Dark Theme) */
 .chat-window.fullscreen .model-menu {
   background-color: var(--col-darkest);
   border-color: var(--col-medium-blue);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
-
-/* Item dalam Menu */
 .model-item {
   display: flex;
   align-items: flex-start;
@@ -699,26 +695,20 @@ p code, li code, span code {
   text-align: left;
   border: 1px solid transparent;
 }
-
 .model-item:hover {
-  background-color: #f8fafc; /* Light hover */
+  background-color: #f8fafc; 
 }
-
 .model-item.active {
   background-color: #eff6ff;
   border-color: var(--col-pale-blue);
 }
-
-/* Fullscreen Item Styling (Dark Theme) */
 .chat-window.fullscreen .model-item:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 .chat-window.fullscreen .model-item.active {
-  background-color: rgba(84, 131, 179, 0.2); /* Tint of medium blue */
+  background-color: rgba(84, 131, 179, 0.2); 
   border-color: var(--col-medium-blue);
 }
-
-/* Ikon Mode */
 .model-item-icon {
   width: 20px;
   height: 20px;
@@ -726,45 +716,34 @@ p code, li code, span code {
   margin-top: 2px;
   color: var(--col-navy);
 }
-
 .chat-window.fullscreen .model-item-icon {
   color: var(--col-pale-blue);
 }
-
-/* Teks Container */
 .model-item-text {
   display: flex;
   flex-direction: column;
 }
-
-/* Judul Mode */
 .model-item-title {
   font-size: 14px;
   font-weight: 700;
   color: var(--col-darkest);
   margin-bottom: 2px;
 }
-
 .chat-window.fullscreen .model-item-title {
   color: var(--col-white);
 }
-
-/* Deskripsi Mode */
 .model-item-desc {
   font-size: 12px;
-  color: #64748b; /* Slate-500 */
+  color: #64748b; 
   line-height: 1.3;
 }
-
 .chat-window.fullscreen .model-item-desc {
-  color: #94a3b8; /* Slate-400 */
+  color: #94a3b8; 
 }
 
 
-/* 7. RESPONSIVE / MOBILE STYLE (BARU)  */
 
 @media (max-width: 768px) {
-  
     .chat-window:not(.fullscreen) {
         width: 100% !important;
         height: 100% !important;
@@ -772,20 +751,16 @@ p code, li code, span code {
         border-radius: 0;
         border: none;
     }
-    
     .chat-button {
         bottom: 20px;
         right: 20px;
     }
-
     .chat-window.fullscreen {
         flex-direction: column;
     }
-
-    .chat-window.fullscreen .fs-sidebar:not(.quiz-active):not(.roadmap-active) {
+    .chat-window.fullscreen .fs-sidebar:not(.quiz-active) {
         display: none;
     }
-
     .chat-window.fullscreen .fs-sidebar.quiz-active {
         width: 100%;
         min-width: 100%;
@@ -794,230 +769,18 @@ p code, li code, span code {
         border-right: none;
         border-bottom: 2px solid var(--col-medium-blue);
     }
-
     .chat-window.fullscreen .fs-chat-area {
         height: auto;
         flex-grow: 1;
     }
-
     .chat-window.fullscreen .fs-footer {
         width: 95%; 
         bottom: 40px; 
         padding: 8px 12px;
     }
-    
-  
     .chat-window.fullscreen .fs-body {
         padding-bottom: 120px; 
     }
-
     .fs-quiz-desc { font-size: 1em; }
     .fs-quiz-option-btn { padding: 10px 14px; font-size: 0.95em; }
-}
-
-/* 8. WELCOME SCREEN (New) */
-.welcome-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-    color: var(--col-darkest);
-    padding: 20px;
-    animation: fadeIn 0.5s ease-out;
-}
-
-.welcome-logo {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 24px;
-    color: #6366f1; /* Indigo-500 */
-}
-
-.welcome-logo svg {
-    width: 100%;
-    height: 100%;
-}
-
-.welcome-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: var(--col-darkest);
-}
-
-.welcome-text {
-    font-size: 16px;
-    color: #475569;
-    font-weight: 400;
-}
-
-.typing-cursor {
-    display: inline-block;
-    width: 2px;
-    background-color: #3b82f6;
-    animation: blink 1s step-end infinite;
-    margin-left: 1px;
-    vertical-align: text-bottom;
-    color: transparent;
-    height: 1.2em;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ... (kode sebelumnya tetap sama) ... */
-
-/* --- 9. ROADMAP / TIMELINE STYLE (NEW) --- */
-.fs-sidebar.roadmap-active {
-    width: 350px; /* Lebar sidebar roadmap */
-    background-color: #f8fafc; /* Latar agak terang biar beda sama Kuis */
-    border-right: 1px solid #e2e8f0;
-}
-
-.roadmap-container {
-    padding: 24px;
-    height: 100%;
-    overflow-y: auto;
-    color: var(--col-darkest);
-    opacity: 0; 
-    transition: opacity 0.3s ease;
-}
-.fs-sidebar.roadmap-active .roadmap-container { opacity: 1; }
-
-.roadmap-header {
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 2px dashed #cbd5e1;
-}
-
-.roadmap-course-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--col-navy);
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
-.roadmap-stats {
-    display: flex;
-    gap: 12px;
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 8px;
-}
-
-/* Progress Bar Mini */
-.roadmap-progress-bg {
-    height: 6px;
-    background-color: #e2e8f0;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 4px;
-}
-.roadmap-progress-fill {
-    height: 100%;
-    background-color: var(--col-medium-blue);
-    border-radius: 3px;
-    transition: width 1s ease-in-out;
-}
-
-/* Vertical Timeline */
-.timeline {
-    position: relative;
-    padding-left: 20px; /* Space untuk garis */
-    border-left: 2px solid #e2e8f0;
-    margin-left: 8px;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 24px;
-}
-
-.timeline-dot {
-    position: absolute;
-    left: -27px; /* Geser ke garis */
-    top: 0;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background-color: #fff;
-    border: 3px solid #cbd5e1;
-    z-index: 2;
-}
-
-.timeline-content {
-    background: #fff;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border: 1px solid #f1f5f9;
-}
-
-.timeline-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--col-darkest);
-    margin-bottom: 4px;
-}
-
-.timeline-desc {
-    font-size: 12px;
-    color: #94a3b8;
-}
-
-/* STATE: ACTIVE (Sedang Dipelajari) */
-.timeline-item.active .timeline-dot {
-    border-color: var(--col-medium-blue);
-    background-color: var(--col-pale-blue);
-    box-shadow: 0 0 0 4px rgba(84, 131, 179, 0.2);
-    animation: pulse-dot 2s infinite;
-}
-.timeline-item.active .timeline-content {
-    border-left: 3px solid var(--col-medium-blue);
-    background-color: #eff6ff; /* Biru sangat muda */
-}
-.timeline-item.active .timeline-title {
-    color: var(--col-navy);
-}
-
-/* STATE: FUTURE (Akan Datang) */
-.timeline-item.future .timeline-dot {
-    border-color: #cbd5e1;
-    background-color: #f1f5f9;
-    width: 12px; height: 12px; left: -25px; top: 2px;
-}
-.timeline-item.future .timeline-title {
-    color: #64748b;
-    font-weight: 500;
-}
-
-/* STATE: PAST (Selesai) */
-.timeline-item.past .timeline-dot {
-    background-color: var(--col-medium-blue);
-    border-color: var(--col-medium-blue);
-}
-
-@keyframes pulse-dot {
-    0% { box-shadow: 0 0 0 0 rgba(84, 131, 179, 0.4); }
-    70% { box-shadow: 0 0 0 8px rgba(84, 131, 179, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(84, 131, 179, 0); }
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .fs-sidebar.roadmap-active {
-        width: 100%;
-        height: 40vh; /* Setengah layar di HP */
-        border-bottom: 2px solid #e2e8f0;
-    }
 }

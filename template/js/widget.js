@@ -56,11 +56,12 @@
                                     <span v-if="isLoggedIn" class="text-xs font-normal opacity-80">Halo, {{ userEmail }}</span>
                                     <span v-else class="text-xs font-normal opacity-80 text-yellow-300">Mode Tamu</span>
                                 </div>
-                                <div>
-                                    <button class="chat-header-fullscreen" v-if="windowState === 'popup'" @click="goFullscreen">
+                                <!-- Wrapper Tombol Header -->
+                                <div class="chat-header-actions">
+                                    <button class="chat-header-fullscreen" title="Fullscreen" @click="goFullscreen">
                                         <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
                                     </button>
-                                    <button class="chat-header-close" @click="closeChat">&times;</button>
+                                    <button class="chat-header-close" title="Tutup" @click="closeChat">&times;</button>
                                 </div>
                             </div>
                             
@@ -77,7 +78,6 @@
                             </div>
                             
                             <div class="chat-footer">
-                                <!-- CUSTOM MODEL SELECTOR (Popup) - Disable jika belum login -->
                                 <div class="model-selector" v-click-outside="closeSelector">
                                     <button class="model-selector-btn" @click="toggleSelector" :disabled="isLoading || !isLoggedIn" :title="!isLoggedIn ? 'Login untuk ganti mode' : ''">
                                         <span>{{ getModeLabel(chatMode) }}</span>
@@ -99,7 +99,6 @@
                                     </div>
                                 </div>
 
-                                <!-- TEXTAREA MULTILINE INPUT -->
                                 <textarea 
                                     rows="1"
                                     class="chat-input" 
@@ -120,7 +119,7 @@
 
                         <!-- Mode Fullscreen -->
                         <template v-if="windowState === 'fullscreen'">
-                            <div class="fs-sidebar" :class="{ 'quiz-active': showQuizPanel, 'roadmap-active': showRoadmapPanel }">
+                            <div class="fs-sidebar" :class="{ 'quiz-active': showQuizPanel }">
                                 <div v-show="showQuizPanel" class="fs-quiz-container">
                                     <div class="fs-quiz-header">
                                         <h4>{{ isAssessmentMode ? 'Tes Minat' : 'Kuis Teknis' }}</h4>
@@ -156,62 +155,17 @@
                                         </template>
                                     </div>
                                 </div>
-                                <!-- PANEL ROADMAP (BARU) -->
-                                <div v-show="showRoadmapPanel && activeRoadmapCourse" class="roadmap-container">
-                                    <div class="roadmap-header">
-                                        <div class="roadmap-course-title">{{ activeRoadmapCourse.kursus }}</div>
-                                        <div class="roadmap-stats">
-                                            <span>{{ activeRoadmapCourse.progres_persen }}% Selesai</span>
-                                            <span>•</span>
-                                            <span>{{ activeRoadmapCourse.selesai_modul }} / {{ activeRoadmapCourse.total_modul }} Modul</span>
-                                        </div>
-                                        <div class="roadmap-progress-bg">
-                                            <div class="roadmap-progress-fill" :style="{ width: activeRoadmapCourse.progres_persen + '%' }"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="timeline">
-                                        <!-- Node Masa Lalu (Mulai) -->
-                                        <div class="timeline-item past">
-                                            <div class="timeline-dot"></div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Mulai Belajar</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Node Sekarang (Sedang Dipelajari) -->
-                                        <div class="timeline-item active">
-                                            <div class="timeline-dot"></div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Saat Ini</div>
-                                                <div class="timeline-desc">{{ activeRoadmapCourse.sedang_dipelajari }}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Node Masa Depan (Akan Datang) -->
-                                        <div v-for="(topic, idx) in activeRoadmapCourse.akan_datang" :key="idx" class="timeline-item future">
-                                            <div class="timeline-dot"></div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Next Step {{ idx + 1 }}</div>
-                                                <div class="timeline-desc">{{ topic }}</div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Node Akhir -->
-                                        <div class="timeline-item future">
-                                            <div class="timeline-dot"></div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Final Submission / Ujian</div>
-                                                <div class="timeline-desc">Goal Akhir</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <div class="fs-chat-area">
                                 <div class="fs-header">
-                                    <span>Today</span>
-                                    <button class="chat-header-close fs-close" @click="closeChat">&times;</button>
+                                    <span>Chat</span>
+                                    <!-- Tombol Minimize & Close -->
+                                    <div class="fs-controls">
+                                        <button class="fs-btn fs-minimize" title="Kecilkan (Minimize)" @click="minimizeChat">
+                                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+                                        </button>
+                                        <button class="fs-btn fs-close" title="Tutup Chat" @click="closeChat">&times;</button>
+                                    </div>
                                 </div>
                                 <div class="fs-body" ref="chatBodyFs">
                                     <div v-for="(msg, index) in messages" :key="index" :class="['fs-message', msg.sender === 'klien' ? 'user' : 'buddy']">
@@ -291,16 +245,14 @@
         return {
           windowState: "closed",
           isLoading: false,
-          isLoggedIn: false, // State Login Baru
-          userEmail: '', // Email user
-          authToken: '', // Token JWT
+          isLoggedIn: false, 
+          userEmail: '', 
+          authToken: '', 
           newMessage: "",
           messages: [],
           currentFlow: "main_menu",
           inputPlaceholder: "Ketik atau pilih opsi...",
           showQuizPanel: false,
-          showRoadmapPanel: false,        // NEW: toggle panel roadmap
-          activeRoadmapCourse: null,      // NEW: data course aktif untuk roadmap
           chatMode: "to the point",
           isSelectorOpen: false, 
           chatModes: [
@@ -335,7 +287,6 @@
         };
       },
       mounted() {
-          // --- CEK STATUS LOGIN SAAT LOAD ---
           const token = localStorage.getItem('access_token');
           const email = localStorage.getItem('user_email');
           if (token) {
@@ -431,11 +382,11 @@
           }
         },
         goFullscreen() { this.windowState = "fullscreen"; },
+        minimizeChat() { this.windowState = "popup"; }, // FUNGSI BARU UNTUK TOMBOL MINIMIZE
         closeChat() { this.windowState = "closed"; },
         
         showInitialTemplates() {
-          // --- LOGIKA FILTER MENU ---
-          let options = ["Cek Minat Belajar", "Rekomendasi Kuis"];
+          let options = ["Cek Minat Belajar", "Rekomendasi kelas"];
           
           if (this.isLoggedIn) {
              options.push("Cek Progres", "Tanya Layar");
@@ -514,9 +465,7 @@
           const msgLower = msgText.toLowerCase();
 
           try {
-            // --- PEMBATASAN USER NON-LOGIN ---
             if (!this.isLoggedIn) {
-                // Izinkan flow Minat & Kuis
                 const allowedKeywords = ["cek minat", "minat belajar", "rekomendasi kuis", "kuis"];
                 const isAllowed = allowedKeywords.some(keyword => msgLower.includes(keyword)) || 
                                   this.currentFlow === "recommend_await_interest" ||
@@ -537,7 +486,6 @@
 
             switch (this.currentFlow) {
               case "awaiting_email":
-                 // Flow lama (deprecated by Auth Token), tapi kita simpan logicnya
                 await this.callProgressApi(msgText); 
                 break;
               case "awaiting_question":
@@ -550,10 +498,9 @@
               case "main_menu":
               default:
                 if (msgLower.includes("cek progres")) {
-                    // Gunakan Token Auth, tidak perlu hardcode email
                     this.messages.push({ sender: "server", text: "Baik, saya sedang mengecek data progres Anda..." });
                     await this.callProgressApi();
-                } else if (msgLower.includes("rekomendasi kuis")) {
+                } else if (msgLower.includes("rekomendasi kelas")) {
                   await this.startQuizFlow();
                 } else if (msgLower.includes("cek minat") || msgLower.includes("minat belajar")) {
                   await this.startAssessmentFlow();
@@ -581,14 +528,12 @@
 
         async callProgressApi(emailInput = null) {
           try {
-            // Logic Baru: Kirim Token di Header
             const response = await fetch(`${API_BASE_URL}/api/v1/progress/`, {
               method: "POST",
               headers: { 
                   "Content-Type": "application/json",
-                  "Authorization": `Bearer ${this.authToken}` // HEADER PENTING
+                  "Authorization": `Bearer ${this.authToken}` 
               },
-              // Body kosong karena backend ambil user dari token
               body: JSON.stringify({}), 
             });
             
@@ -598,19 +543,6 @@
               throw new Error(data.detail || data.bot_response || `Gagal mengecek progres`);
             }
             this.messages.push({ sender: "server", text: data.bot_response });
-            if (data.progress_data && data.progress_data.length > 0) {
-              const active = data.progress_data.find(c => c.status === "BELUM LULUS") || data.progress_data[0];
-              this.activeRoadmapCourse = active;
-
-              // Aktifkan panel roadmap, matikan panel kuis
-              this.showQuizPanel = false;
-              this.showRoadmapPanel = true;
-
-              // Pastikan tampilan fullscreen supaya sidebar terlihat
-              this.goFullscreen();
-            } else {
-              this.showRoadmapPanel = false;
-            }
           } catch (error) {
             console.error("Error di callProgressApi:", error);
             this.messages.push({ sender: "server", text: `Maaf: ${error.message}` });
