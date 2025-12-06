@@ -10,21 +10,15 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost",
-    "http://localhost:5500",    # Default Live Server Port
-    "http://127.0.0.1:5500",
-    "http://localhost:5501",    # Port alternatif Live Server (milik Anda sekarang)
-    "http://127.0.0.1:5501",
-    "https://learning-budy-chatbot.vercel.app",
-    "*"                         # Fallback untuk development
+    "https://learning-budy-chatbot.vercel.app",                     
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,       # Gunakan list origin spesifik
+    allow_origins=origins,       
     allow_credentials=True,
-    allow_methods=["*"],         # Izinkan semua method (GET, POST, PUT, DELETE)
-    allow_headers=["*"],         # Izinkan semua header (Authorization, Content-Type)
+    allow_methods=["*"],         
+    allow_headers=["*"],         
 )
 
 app.include_router(api_router, prefix="/api/v1")
