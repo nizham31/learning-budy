@@ -15,6 +15,7 @@ origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5501",    # Port alternatif Live Server (milik Anda sekarang)
     "http://127.0.0.1:5501",
+    "https://learning-budy-chatbot.vercel.app",
     "*"                         # Fallback untuk development
 ]
 

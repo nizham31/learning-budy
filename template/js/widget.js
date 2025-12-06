@@ -526,7 +526,7 @@
 
           try {
             if (!this.isLoggedIn) {
-                const allowedKeywords = ["cek minat", "minat belajar", "rekomendasi kuis", "kuis"];
+                const allowedKeywords = ["cek minat", "minat belajar", "rekomendasi kelas", "kelas"];
                 const isAllowed = allowedKeywords.some(keyword => msgLower.includes(keyword)) || 
                                   this.currentFlow === "recommend_await_interest" ||
                                   this.currentFlow === "recommend_await_quiz_answer" ||
