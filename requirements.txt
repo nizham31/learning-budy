@@ -1,11 +1,11 @@
 fastapi
 uvicorn
+python-multipart
 pydantic
 pydantic-settings
-httpx
-google-generativeai
-python-multipart
-supabase
-python-jose       
-passlib           
 email-validator
+python-dotenv 
+google-generativeai
+httpx
+python-jose[cryptography] 
+passlib[bcrypt]
